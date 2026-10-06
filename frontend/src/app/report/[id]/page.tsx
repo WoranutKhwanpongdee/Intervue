@@ -93,7 +93,7 @@ export default function FinalReportPage({
               {session.role_title}
             </h1>
             <p className="text-xs text-neutral-500 mt-1">
-              {formatDate(session.updated_at)} · {session.experience_level} · {session.interview_type}
+              {formatDate(session.updated_at)} · {session.experience_level} · <span className="font-medium text-neutral-800 dark:text-neutral-200">🎯 {session.interview_type} Mode</span>
             </p>
           </div>
 

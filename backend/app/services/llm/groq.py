@@ -43,14 +43,17 @@ class GroqProvider(BaseLLMProvider):
         experience_level: str,
         interview_type: str,
         difficulty: str,
-        resume_text: Optional[str] = None
+        resume_text: Optional[str] = None,
+        job_description: Optional[str] = None
     ) -> InterviewQuestion:
         resume_context = f"\nCandidate Resume:\n{resume_text[:2500]}" if resume_text else ""
+        job_context = f"\nTarget Job Description Requirements:\n{job_description[:2500]}" if job_description else ""
         prompt = f"""Generate the first question for a mock interview in JSON format.
 Target Role: {role_title}
 Experience Level: {experience_level}
-Interview Type: {interview_type}
+Interview Mode: {interview_type} (Options: Technical, Behavioral, HR, Mixed, Job-specific)
 Difficulty: {difficulty}
+{job_context}
 {resume_context}
 
 Return JSON with fields:
@@ -72,7 +75,7 @@ question (str), category (str), difficulty (str), rationale (str), expected_conc
     ) -> AnswerEvaluation:
         prompt = f"""Evaluate candidate's answer to this interview question in JSON format.
 Role: {role_title} ({experience_level})
-Interview Type: {interview_type}
+Interview Mode: {interview_type}
 Question: {question_text}
 Expected Concepts: {json.dumps(expected_concepts)}
 Candidate Answer: {user_answer}
@@ -114,11 +117,14 @@ question (str), category (str), difficulty (str), rationale (str), expected_conc
         turn_number: int,
         total_questions: int,
         previous_turns: List[Dict[str, Any]],
-        resume_text: Optional[str] = None
+        resume_text: Optional[str] = None,
+        job_description: Optional[str] = None
     ) -> InterviewQuestion:
         history = [f"Q: {t.get('question_text')}" for t in previous_turns]
+        job_context = f"\nJob Requirements:\n{job_description[:2000]}" if job_description else ""
         prompt = f"""Generate question #{turn_number} of {total_questions} for a {role_title} ({experience_level}) interview.
-Type: {interview_type}, Difficulty: {difficulty}
+Mode: {interview_type}, Difficulty: {difficulty}
+{job_context}
 Previous questions:
 {chr(10).join(history)}
 {f'Resume: {resume_text[:2000]}' if resume_text else ''}
@@ -135,14 +141,17 @@ question (str), category (str), difficulty (str), rationale (str), expected_conc
         interview_type: str,
         difficulty: str,
         turns: List[Dict[str, Any]],
-        resume_text: Optional[str] = None
+        resume_text: Optional[str] = None,
+        job_description: Optional[str] = None
     ) -> FinalInterviewReport:
         history = []
         for idx, t in enumerate(turns, 1):
             history.append(f"Turn {idx}: Q: {t.get('question_text')} | Answer: {t.get('user_answer')} | Score: {t.get('turn_score')}")
 
+        job_context = f"\nJob Context:\n{job_description[:2000]}" if job_description else ""
         prompt = f"""Generate final interview performance report for {role_title} ({experience_level}).
-Difficulty: {difficulty}
+Mode: {interview_type}, Difficulty: {difficulty}
+{job_context}
 Transcript:
 {chr(10).join(history)}
 

@@ -105,7 +105,7 @@ export default function HistoryPage() {
                         {item.experience_level}
                       </Badge>
                       <Badge variant="secondary" size="sm">
-                        {item.interview_type}
+                        🎯 {item.interview_type}
                       </Badge>
                     </div>
 

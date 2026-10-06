@@ -1,5 +1,6 @@
 export type ExperienceLevel = 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
-export type InterviewType = 'Technical' | 'Behavioral' | 'System Design' | 'Leadership' | 'Mixed';
+export type InterviewMode = 'Technical' | 'Behavioral' | 'HR' | 'Mixed' | 'Job-specific';
+export type InterviewType = InterviewMode;
 export type Difficulty = 'Easy' | 'Medium' | 'Hard';
 
 export interface QuestionTurn {
@@ -30,10 +31,11 @@ export interface InterviewSession {
   id: string;
   role_title: string;
   experience_level: ExperienceLevel;
-  interview_type: InterviewType;
+  interview_type: InterviewMode;
   difficulty: Difficulty;
   num_questions: number;
   resume_text?: string | null;
+  job_description?: string | null;
   status: 'in_progress' | 'completed' | 'abandoned';
   overall_score?: number | null;
   readiness_level?: string | null;
@@ -51,7 +53,7 @@ export interface InterviewSessionSummary {
   id: string;
   role_title: string;
   experience_level: ExperienceLevel;
-  interview_type: InterviewType;
+  interview_type: InterviewMode;
   difficulty: Difficulty;
   num_questions: number;
   status: 'in_progress' | 'completed' | 'abandoned';
@@ -66,10 +68,11 @@ export interface InterviewSessionSummary {
 export interface CreateInterviewPayload {
   role_title: string;
   experience_level: ExperienceLevel;
-  interview_type: InterviewType;
+  interview_type: InterviewMode;
   difficulty: Difficulty;
   num_questions: number;
   resume_text?: string;
+  job_description?: string;
 }
 
 export interface TurnEvaluationResult {

@@ -40,9 +40,12 @@ class OllamaProvider(BaseLLMProvider):
         experience_level: str,
         interview_type: str,
         difficulty: str,
-        resume_text: Optional[str] = None
+        resume_text: Optional[str] = None,
+        job_description: Optional[str] = None
     ) -> InterviewQuestion:
-        prompt = f"""Generate initial interview question for {role_title} ({experience_level}), type: {interview_type}, difficulty: {difficulty}.
+        prompt = f"""Generate initial interview question for {role_title} ({experience_level}), mode: {interview_type}, difficulty: {difficulty}.
+{f'Job Description: {job_description[:2000]}' if job_description else ''}
+{f'Resume: {resume_text[:2000]}' if resume_text else ''}
 Return JSON:
 {{
   "question": "string",
@@ -66,7 +69,7 @@ Return JSON:
         turn_number: int = 1,
         total_questions: int = 5
     ) -> AnswerEvaluation:
-        prompt = f"""Evaluate answer for {role_title}. Question: {question_text}. Expected: {expected_concepts}. Candidate answer: {user_answer}.
+        prompt = f"""Evaluate answer for {role_title}. Mode: {interview_type}. Question: {question_text}. Expected: {expected_concepts}. Candidate answer: {user_answer}.
 Return JSON:
 {{
   "technical_score": float,
@@ -114,9 +117,11 @@ Return JSON:
         turn_number: int,
         total_questions: int,
         previous_turns: List[Dict[str, Any]],
-        resume_text: Optional[str] = None
+        resume_text: Optional[str] = None,
+        job_description: Optional[str] = None
     ) -> InterviewQuestion:
-        prompt = f"""Generate question #{turn_number} of {total_questions} for {role_title} ({experience_level}), difficulty: {difficulty}.
+        prompt = f"""Generate question #{turn_number} of {total_questions} for {role_title} ({experience_level}), mode: {interview_type}, difficulty: {difficulty}.
+{f'Job Description: {job_description[:2000]}' if job_description else ''}
 Return JSON:
 {{
   "question": "string",
@@ -135,9 +140,10 @@ Return JSON:
         interview_type: str,
         difficulty: str,
         turns: List[Dict[str, Any]],
-        resume_text: Optional[str] = None
+        resume_text: Optional[str] = None,
+        job_description: Optional[str] = None
     ) -> FinalInterviewReport:
-        prompt = f"""Generate final interview performance report for {role_title} ({experience_level}). Turns completed: {len(turns)}.
+        prompt = f"""Generate final interview performance report for {role_title} ({experience_level}). Mode: {interview_type}. Turns completed: {len(turns)}.
 Return JSON:
 {{
   "overall_score": float,

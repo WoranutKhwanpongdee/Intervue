@@ -7,10 +7,11 @@ from app.schemas.llm import AnswerEvaluation, FinalInterviewReport
 class CreateInterviewRequest(BaseModel):
     role_title: str = Field(..., min_length=2, max_length=200, example="Senior Frontend Engineer")
     experience_level: str = Field(..., example="Senior")  # Junior, Mid, Senior, Lead, Principal
-    interview_type: str = Field(..., example="Technical")  # Technical, Behavioral, System Design, Leadership, Mixed
+    interview_type: str = Field(..., example="Technical")  # Technical, Behavioral, HR, Mixed, Job-specific
     difficulty: str = Field(..., example="Medium")  # Easy, Medium, Hard
     num_questions: int = Field(default=5, ge=1, le=10, example=5)
     resume_text: Optional[str] = Field(default=None, max_length=25000)
+    job_description: Optional[str] = Field(default=None, max_length=25000)
 
 
 class QuestionTurnResponse(BaseModel):
@@ -78,6 +79,7 @@ class InterviewSessionDetail(BaseModel):
     difficulty: str
     num_questions: int
     resume_text: Optional[str] = None
+    job_description: Optional[str] = None
     status: str
     overall_score: Optional[float] = None
     readiness_level: Optional[str] = None

@@ -146,13 +146,17 @@ export default function InterviewRoomPage({
       {/* Session Top Bar */}
       <div className="border-b border-neutral-100 dark:border-neutral-900 bg-white/90 dark:bg-black/90 sticky top-13 z-30">
         <div className="mx-auto max-w-4xl px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <span className="font-medium text-xs text-neutral-900 dark:text-neutral-100">
               {session.role_title}
             </span>
             <span className="text-neutral-300 dark:text-neutral-700">/</span>
-            <span className="text-xs text-neutral-500">
-              Question {answeredTurns.length + 1} of {session.num_questions}
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
+              🎯 {session.interview_type}
+            </span>
+            <span className="text-neutral-300 dark:text-neutral-700 hidden sm:inline">/</span>
+            <span className="text-xs text-neutral-500 hidden sm:inline">
+              Q{answeredTurns.length + 1} of {session.num_questions}
             </span>
           </div>
 

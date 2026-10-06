@@ -2,13 +2,13 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, X, Upload, Check } from "lucide-react";
+import { AlertCircle, X, Upload, Target, Check } from "lucide-react";
 import { api } from "@/lib/api";
 import {
   CreateInterviewPayload,
   Difficulty,
   ExperienceLevel,
-  InterviewType,
+  InterviewMode,
 } from "@/types/interview";
 import { Button } from "@/components/ui/Button";
 
@@ -20,20 +20,50 @@ const ROLE_PRESETS = [
   "Engineering Manager / Tech Lead",
 ];
 
-const EXPERIENCE_LEVELS: { id: ExperienceLevel; label: string; desc: string }[] = [
-  { id: "Junior", label: "Junior", desc: "0-2 years · Fundamentals & syntax" },
-  { id: "Mid", label: "Mid-Level", desc: "3-5 years · Systems & trade-offs" },
-  { id: "Senior", label: "Senior", desc: "5-8 years · Architecture & edge cases" },
-  { id: "Lead", label: "Lead", desc: "8+ years · Cross-team design & vision" },
-  { id: "Principal", label: "Principal", desc: "High scale & organizational strategy" },
+const INTERVIEW_MODES: {
+  id: InterviewMode;
+  label: string;
+  badge: string;
+  desc: string;
+}[] = [
+  {
+    id: "Technical",
+    label: "Technical",
+    badge: "Code & Architecture",
+    desc: "System design, core invariants, concurrency, algorithms & debugging.",
+  },
+  {
+    id: "Behavioral",
+    label: "Behavioral",
+    badge: "STAR Method",
+    desc: "Teamwork, handling disagreement, ownership, and leadership situations.",
+  },
+  {
+    id: "HR",
+    label: "HR Screening",
+    badge: "Culture & Fit",
+    desc: "Career trajectory, motivations, salary discussion handling & work ethics.",
+  },
+  {
+    id: "Mixed",
+    label: "Mixed",
+    badge: "Comprehensive",
+    desc: "A balanced simulation across technical depth, culture fit, and behavior.",
+  },
+  {
+    id: "Job-specific",
+    label: "Job-Specific",
+    badge: "Role Tailored",
+    desc: "Grounded strictly in the target job description, tools & industry domain.",
+  },
 ];
 
-const INTERVIEW_TYPES: { id: InterviewType; label: string; desc: string }[] = [
-  { id: "Technical", label: "Technical Deep-Dive", desc: "Internals, concurrency, algorithms & debugging" },
-  { id: "System Design", label: "System Design", desc: "Scalability, caching, databases & throughput" },
-  { id: "Behavioral", label: "Behavioral (STAR)", desc: "Conflict resolution, stakeholder management" },
-  { id: "Leadership", label: "Engineering Leadership", desc: "Technical debt, mentoring, roadmaps" },
-  { id: "Mixed", label: "Comprehensive", desc: "Balanced blend of architecture & behavioral" },
+const EXPERIENCE_LEVELS: { id: ExperienceLevel; label: string; desc: string }[] = [
+  { id: "Junior", label: "Junior", desc: "0-2 years · Core fundamentals & syntax" },
+  { id: "Mid", label: "Mid-Level", desc: "3-5 years · Systems & practical trade-offs" },
+  { id: "Senior", label: "Senior", desc: "5-8 years · Architecture & production edge cases" },
+  { id: "Lead", label: "Lead", desc: "8+ years · Cross-team technical vision & impact" },
+  { id: "Principal", label: "Principal", desc: "High scale, organizational strategy & trade-offs" },
 ];
 
 const DIFFICULTIES: { id: Difficulty; label: string }[] = [
@@ -45,12 +75,17 @@ const DIFFICULTIES: { id: Difficulty; label: string }[] = [
 export default function SetupPage() {
   const router = useRouter();
 
+  // Mode Selection
+  const [interviewMode, setInterviewMode] = useState<InterviewMode>("Technical");
   const [roleTitle, setRoleTitle] = useState("Senior Frontend Engineer");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("Senior");
-  const [interviewType, setInterviewType] = useState<InterviewType>("Technical");
   const [difficulty, setDifficulty] = useState<Difficulty>("Medium");
   const [numQuestions, setNumQuestions] = useState<number>(5);
 
+  // Job Description (especially for Job-specific mode)
+  const [jobDescription, setJobDescription] = useState("");
+
+  // Resume State
   const [resumeMode, setResumeMode] = useState<"none" | "upload" | "paste">("none");
   const [resumeText, setResumeText] = useState("");
   const [resumeFilename, setResumeFilename] = useState("");
@@ -90,10 +125,11 @@ export default function SetupPage() {
     const payload: CreateInterviewPayload = {
       role_title: roleTitle.trim(),
       experience_level: experienceLevel,
-      interview_type: interviewType,
+      interview_type: interviewMode,
       difficulty: difficulty,
       num_questions: numQuestions,
       resume_text: resumeMode !== "none" && resumeText.trim() ? resumeText.trim() : undefined,
+      job_description: jobDescription.trim() ? jobDescription.trim() : undefined,
     };
 
     try {
@@ -106,17 +142,17 @@ export default function SetupPage() {
   };
 
   return (
-    <div className="py-12 bg-white dark:bg-black min-h-screen">
+    <div className="py-12 bg-white dark:bg-black min-h-screen text-neutral-900 dark:text-neutral-100">
       <div className="mx-auto max-w-2xl px-6">
         <div className="mb-8">
           <p className="text-xs font-mono uppercase tracking-wider text-neutral-500 mb-1">
-            Session Configuration
+            Session Calibration
           </p>
-          <h1 className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+          <h1 className="text-2xl font-semibold tracking-tight">
             Configure Interview
           </h1>
           <p className="text-xs text-neutral-500 mt-1">
-            Set your target position, level, and depth.
+            Select your interview mode, role, and evaluation criteria.
           </p>
         </div>
 
@@ -130,11 +166,52 @@ export default function SetupPage() {
           </div>
         )}
 
-        <form onSubmit={handleCreateInterview} className="space-y-6">
-          {/* Role */}
+        <form onSubmit={handleCreateInterview} className="space-y-7">
+          {/* Section 1: 🎯 Interview Mode */}
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5">
+                <span>🎯</span>
+                <span>Interview Mode</span>
+              </label>
+              <span className="text-[11px] font-mono text-neutral-400">
+                Mode: {interviewMode}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {INTERVIEW_MODES.map((mode) => {
+                const isSelected = interviewMode === mode.id;
+                return (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    onClick={() => setInterviewMode(mode.id)}
+                    className={`p-3.5 rounded-lg border text-left cursor-pointer transition-colors ${
+                      isSelected
+                        ? "border-black dark:border-white bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100"
+                        : "border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 text-neutral-600 dark:text-neutral-400"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold">{mode.label}</span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
+                        {mode.badge}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-neutral-500 mt-1 leading-snug">
+                      {mode.desc}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Section 2: Target Position */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-              Target Position
+              Target Position / Title
             </label>
             <input
               type="text"
@@ -162,7 +239,28 @@ export default function SetupPage() {
             </div>
           </div>
 
-          {/* Level */}
+          {/* Job-specific Description Field (Highlighted if Job-specific mode) */}
+          {(interviewMode === "Job-specific" || jobDescription) && (
+            <div className="p-4 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50/60 dark:bg-neutral-950/60 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                  Target Job Description & Requirements
+                </label>
+                <span className="text-[10px] text-neutral-400 uppercase font-mono">
+                  {interviewMode === "Job-specific" ? "Recommended for this mode" : "Optional"}
+                </span>
+              </div>
+              <textarea
+                rows={3}
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                placeholder="Paste key responsibilities, required tech stack (e.g., Next.js, Kafka, Kubernetes), and deliverables..."
+                className="w-full p-2.5 text-xs rounded-md border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 font-sans"
+              />
+            </div>
+          )}
+
+          {/* Section 3: Seniority Level */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
               Seniority Level
@@ -189,34 +287,7 @@ export default function SetupPage() {
             </div>
           </div>
 
-          {/* Type */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-              Interview Track
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {INTERVIEW_TYPES.map((type) => {
-                const isSelected = interviewType === type.id;
-                return (
-                  <button
-                    key={type.id}
-                    type="button"
-                    onClick={() => setInterviewType(type.id)}
-                    className={`p-3 rounded-lg border text-left cursor-pointer transition-colors ${
-                      isSelected
-                        ? "border-black dark:border-white bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100"
-                        : "border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 text-neutral-600 dark:text-neutral-400"
-                    }`}
-                  >
-                    <div className="text-xs font-medium">{type.label}</div>
-                    <div className="text-[11px] text-neutral-500 mt-0.5">{type.desc}</div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Difficulty & Count */}
+          {/* Section 4: Rigor & Count */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
@@ -263,7 +334,7 @@ export default function SetupPage() {
             </div>
           </div>
 
-          {/* Resume Upload (Optional) */}
+          {/* Section 5: Resume Upload */}
           <div className="pt-2 border-t border-neutral-100 dark:border-neutral-900 space-y-3">
             <div className="flex items-center justify-between">
               <div>
@@ -271,7 +342,7 @@ export default function SetupPage() {
                   Resume Context (Optional)
                 </span>
                 <p className="text-[11px] text-neutral-500">
-                  Provide your resume to ground questions in your real tech stack.
+                  Gounds interview questions in your real career accomplishments.
                 </p>
               </div>
 
@@ -338,7 +409,7 @@ export default function SetupPage() {
           {/* Action */}
           <div className="pt-4">
             <Button type="submit" size="lg" className="w-full" isLoading={isLoading}>
-              Start Interview
+              Start {interviewMode} Interview
             </Button>
           </div>
         </form>

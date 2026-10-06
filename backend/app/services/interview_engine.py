@@ -27,6 +27,7 @@ class InterviewEngine:
             difficulty=req.difficulty,
             num_questions=req.num_questions,
             resume_text=req.resume_text,
+            job_description=req.job_description,
             status="in_progress"
         )
         self.db.add(session)
@@ -38,7 +39,8 @@ class InterviewEngine:
             experience_level=req.experience_level,
             interview_type=req.interview_type,
             difficulty=req.difficulty,
-            resume_text=req.resume_text
+            resume_text=req.resume_text,
+            job_description=req.job_description
         )
 
         first_turn = QuestionTurn(
@@ -155,7 +157,8 @@ class InterviewEngine:
                 turn_number=core_answered_count + 1,
                 total_questions=total_core_needed,
                 previous_turns=previous_turns_data,
-                resume_text=session.resume_text
+                resume_text=session.resume_text,
+                job_description=session.job_description
             )
             next_turn = QuestionTurn(
                 session_id=session.id,
@@ -202,7 +205,8 @@ class InterviewEngine:
             interview_type=session.interview_type,
             difficulty=session.difficulty,
             turns=turns_data,
-            resume_text=session.resume_text
+            resume_text=session.resume_text,
+            job_description=session.job_description
         )
 
         session.status = "completed"

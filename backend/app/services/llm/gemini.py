@@ -57,14 +57,17 @@ class GeminiProvider(BaseLLMProvider):
         experience_level: str,
         interview_type: str,
         difficulty: str,
-        resume_text: Optional[str] = None
+        resume_text: Optional[str] = None,
+        job_description: Optional[str] = None
     ) -> InterviewQuestion:
         resume_context = f"\nCandidate Resume Highlights:\n{resume_text[:3000]}" if resume_text else ""
+        job_context = f"\nTarget Job Description / Requirements:\n{job_description[:3000]}" if job_description else ""
         prompt = f"""Generate the first question for a mock interview.
 Target Role: {role_title}
 Experience Level: {experience_level}
-Interview Type: {interview_type}
+Interview Mode: {interview_type} (Options: Technical, Behavioral, HR, Mixed, Job-specific)
 Difficulty: {difficulty}
+{job_context}
 {resume_context}
 
 Return a valid JSON object matching this schema:
@@ -162,20 +165,23 @@ Return JSON:
         turn_number: int,
         total_questions: int,
         previous_turns: List[Dict[str, Any]],
-        resume_text: Optional[str] = None
+        resume_text: Optional[str] = None,
+        job_description: Optional[str] = None
     ) -> InterviewQuestion:
         history_summary = []
         for t in previous_turns:
             history_summary.append(f"Q: {t.get('question_text', '')} | Score: {t.get('turn_score', 'N/A')}")
         
+        job_context = f"\nJob Description Requirements:\n{job_description[:2000]}" if job_description else ""
         prompt = f"""Generate question #{turn_number} of {total_questions} for this interview.
 Role: {role_title} ({experience_level})
-Interview Type: {interview_type}
+Interview Mode: {interview_type} (Options: Technical, Behavioral, HR, Mixed, Job-specific)
 Difficulty: {difficulty}
+{job_context}
 Questions already covered:
 {chr(10).join(history_summary)}
 
-Ensure this question explores a different angle or complementary skill (e.g. system design, concurrency, edge cases, behavioral conflict, observability).
+Ensure this question aligns with the selected mode and explores a complementary dimension.
 {f'Resume Highlights: {resume_text[:2000]}' if resume_text else ''}
 
 Return JSON:
@@ -198,7 +204,8 @@ Return JSON:
         interview_type: str,
         difficulty: str,
         turns: List[Dict[str, Any]],
-        resume_text: Optional[str] = None
+        resume_text: Optional[str] = None,
+        job_description: Optional[str] = None
     ) -> FinalInterviewReport:
         turns_summary = []
         for idx, t in enumerate(turns, 1):
@@ -211,8 +218,9 @@ Return JSON:
 
         prompt = f"""Generate an executive-grade Final Interview Evaluation Report.
 Role: {role_title} ({experience_level})
-Interview Type: {interview_type}
+Interview Mode: {interview_type}
 Difficulty: {difficulty}
+{f'Target Job Requirements: {job_description[:2000]}' if job_description else ''}
 Full Interview Transcript & Scores:
 {chr(10).join(turns_summary)}
 

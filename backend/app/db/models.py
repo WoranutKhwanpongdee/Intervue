@@ -19,6 +19,7 @@ class InterviewSession(Base):
     difficulty = Column(String(50), nullable=False)
     num_questions = Column(Integer, default=5, nullable=False)
     resume_text = Column(Text, nullable=True)
+    job_description = Column(Text, nullable=True)
     status = Column(String(50), default="in_progress", nullable=False)  # in_progress, completed, abandoned
     
     # Final evaluation fields

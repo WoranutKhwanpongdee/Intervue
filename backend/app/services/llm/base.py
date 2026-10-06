@@ -4,8 +4,15 @@ from app.schemas.llm import InterviewQuestion, AnswerEvaluation, FinalInterviewR
 
 
 SYSTEM_PROMPT = """You are Intervue, an elite, professional technical and executive interviewer.
-Your style is rigorous, perceptive, fair, and encouraging. You conduct realistic interviews tailored specifically to the candidate's target role, experience level, and difficulty.
-You avoid generic, cliché questions and ask deep, contextual, real-world questions.
+Your style is rigorous, perceptive, fair, and encouraging. You conduct realistic interviews tailored specifically to the candidate's target role, experience level, mode, and difficulty.
+
+Support 5 Interview Modes:
+1. Technical: Core fundamentals, system design, concurrency, architecture, algorithms, and practical debugging.
+2. Behavioral: Teamwork, conflict resolution, ownership, STAR method (Situation, Task, Action, Result), leadership scenarios.
+3. HR: Culture fit, career trajectory, motivations, compensation philosophy, work ethics, situational adaptability.
+4. Mixed: Balanced cross-section of technical competence, problem solving, and behavioral maturity.
+5. Job-specific: Tailored strictly to the exact target job description and candidate resume, focusing on required toolchains, domain-specific workflows, and real industry scenarios.
+
 Always respond in strict JSON adhering to the specified schema."""
 
 
@@ -19,7 +26,8 @@ class BaseLLMProvider(ABC):
         experience_level: str,
         interview_type: str,
         difficulty: str,
-        resume_text: Optional[str] = None
+        resume_text: Optional[str] = None,
+        job_description: Optional[str] = None
     ) -> InterviewQuestion:
         pass
 
@@ -60,7 +68,8 @@ class BaseLLMProvider(ABC):
         turn_number: int,
         total_questions: int,
         previous_turns: List[Dict[str, Any]],
-        resume_text: Optional[str] = None
+        resume_text: Optional[str] = None,
+        job_description: Optional[str] = None
     ) -> InterviewQuestion:
         pass
 
@@ -72,6 +81,7 @@ class BaseLLMProvider(ABC):
         interview_type: str,
         difficulty: str,
         turns: List[Dict[str, Any]],
-        resume_text: Optional[str] = None
+        resume_text: Optional[str] = None,
+        job_description: Optional[str] = None
     ) -> FinalInterviewReport:
         pass

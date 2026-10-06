@@ -68,6 +68,35 @@ DOMAIN_QUESTIONS = {
             "category": "Incident Response & Reliability",
             "expected_concepts": ["Rollback vs patch decision", "Observability & telemetry", "Root cause 5-Whys", "Action items & prevention", "Blameless post-mortem culture"]
         }
+    ],
+    "hr": [
+        {
+            "question": "What specifically motivated you to consider this transition, and what key criteria are you looking for in your next team and engineering culture?",
+            "category": "Career Motivation & Culture Fit",
+            "expected_concepts": ["Clear career trajectory", "Impact and ownership", "Team collaboration values", "Healthy feedback culture"]
+        },
+        {
+            "question": "Tell me about a time you had to manage conflicting priorities and tight deadlines with competing stakeholders. How did you communicate trade-offs and manage expectations?",
+            "category": "Work Ethic & Stakeholder Alignment",
+            "expected_concepts": ["Prioritization matrix", "Proactive transparent communication", "Escalation protocols", "Outcome delivery"]
+        },
+        {
+            "question": "How do you handle feedback or criticism when a project or pull request you invested heavily in needs to be significantly changed or cancelled?",
+            "category": "Adaptability & Growth Mindset",
+            "expected_concepts": ["Emotional maturity", "Objective problem orientation", "Constructive reflection", "Team first mentality"]
+        }
+    ],
+    "job_specific": [
+        {
+            "question": "Based on the specific requirements for this target role, walk me through how your past hands-on experience directly matches the primary deliverables and tech stack expected in the first 90 days.",
+            "category": "Role Deliverables & Tech Stack Fit",
+            "expected_concepts": ["Direct tooling proficiency", "Onboarding ramp-up plan", "Domain problem familiarity", "Measurable project milestones"]
+        },
+        {
+            "question": "Describe a production feature or system you built that closely mirrors the core domain challenges of this position. What were the toughest architectural constraints you solved?",
+            "category": "Domain Scenario Problem Solving",
+            "expected_concepts": ["Specific domain mechanics", "Performance constraints", "System integration", "Maintainability and testing"]
+        }
     ]
 }
 
@@ -76,10 +105,17 @@ class MockProvider(BaseLLMProvider):
     """Realistic deterministic provider useful for testing and offline environments."""
 
     def _select_domain(self, role_title: str, interview_type: str) -> str:
-        role = role_title.lower()
         itype = interview_type.lower()
+        if "hr" in itype:
+            return "hr"
+        if "job" in itype:
+            return "job_specific"
         if "behavioral" in itype or "leadership" in itype:
             return "general"
+        if "mixed" in itype:
+            return "general"
+        
+        role = role_title.lower()
         if any(kw in role for kw in ["front", "react", "vue", "web", "ui", "javascript", "typescript"]):
             return "frontend"
         if any(kw in role for kw in ["back", "python", "golang", "java", "api", "data", "cloud", "system"]):
@@ -92,21 +128,24 @@ class MockProvider(BaseLLMProvider):
         experience_level: str,
         interview_type: str,
         difficulty: str,
-        resume_text: Optional[str] = None
+        resume_text: Optional[str] = None,
+        job_description: Optional[str] = None
     ) -> InterviewQuestion:
         domain = self._select_domain(role_title, interview_type)
         pool = DOMAIN_QUESTIONS.get(domain, DOMAIN_QUESTIONS["general"])
         selected = pool[0]
         
         custom_q = selected["question"]
-        if resume_text and len(resume_text) > 50:
+        if job_description and len(job_description) > 30 and domain == "job_specific":
+            custom_q = f"Looking at the requirements for this role: {selected['question']}"
+        elif resume_text and len(resume_text) > 50:
             custom_q = f"Looking at your background in {role_title}: {selected['question']}"
 
         return InterviewQuestion(
             question=custom_q,
             category=selected["category"],
             difficulty=difficulty,
-            rationale=f"Evaluates core domain proficiency and engineering maturity for a {experience_level} {role_title}.",
+            rationale=f"Evaluates core proficiency for a {experience_level} {role_title} in {interview_type} mode.",
             expected_concepts=selected["expected_concepts"]
         )
 
@@ -139,13 +178,13 @@ class MockProvider(BaseLLMProvider):
             base_rel = 55.0
             base_clar = 50.0
             base_comp = 35.0
-            feedback = "Your answer was very brief. To demonstrate seniority, elaborate on technical mechanics, edge cases, and real-world trade-offs."
+            feedback = "Your answer was very brief. To demonstrate seniority, elaborate on practical mechanics, edge cases, and real-world trade-offs."
         elif word_count < 60:
             base_tech = 68.0 + min(len(matched_concepts) * 5, 15)
             base_rel = 75.0
             base_clar = 72.0
             base_comp = 65.0
-            feedback = "Solid baseline explanation, but could go deeper into architectural consequences and failure scenarios."
+            feedback = "Solid baseline explanation, but could go deeper into operational consequences and concrete examples."
         else:
             base_tech = 78.0 + min(len(matched_concepts) * 5, 18)
             base_rel = 85.0
@@ -168,17 +207,16 @@ class MockProvider(BaseLLMProvider):
         missing = [c for c in expected_concepts if c not in matched_concepts]
         improvements = [
             f"Discuss: {missing[0]}" if missing else "Mention operational metrics and monitoring",
-            "Explicitly weigh trade-offs and alternative implementation approaches"
+            "Explicitly weigh trade-offs and alternative approaches"
         ]
 
         sample_answer = (
-            f"In a production system for a {role_title}, I would address this by establishing clear boundaries. "
+            f"In a production environment for a {role_title}, I would address this by establishing clear boundaries. "
             f"First, focusing on {expected_concepts[0] if expected_concepts else 'fundamental invariants'}, "
             f"ensuring resilience through {expected_concepts[1] if len(expected_concepts) > 1 else 'defensive architecture'}, "
             f"and continuously verifying behavior with comprehensive telemetry."
         )
 
-        # Trigger follow-up if answer is moderate and not already follow-up
         requires_followup = not is_followup and (word_count >= 25) and (turn_number < total_questions) and (random.random() > 0.4)
 
         return AnswerEvaluation(
@@ -205,7 +243,7 @@ class MockProvider(BaseLLMProvider):
         difficulty: str
     ) -> InterviewQuestion:
         return InterviewQuestion(
-            question=f"Building on your previous answer, what happens if traffic spikes 10x or network latency degrades significantly? What specific failure modes would emerge and how would you mitigate them?",
+            question="Building on your previous answer, what happens if traffic spikes 10x or network latency degrades significantly? What specific failure modes would emerge and how would you mitigate them?",
             category="Failure Modes & Scale Deep Dive",
             difficulty=difficulty,
             rationale="Validates whether candidate understands operational resilience beyond happy-path implementations.",
@@ -221,7 +259,8 @@ class MockProvider(BaseLLMProvider):
         turn_number: int,
         total_questions: int,
         previous_turns: List[Dict[str, Any]],
-        resume_text: Optional[str] = None
+        resume_text: Optional[str] = None,
+        job_description: Optional[str] = None
     ) -> InterviewQuestion:
         domain = self._select_domain(role_title, interview_type)
         pool = DOMAIN_QUESTIONS.get(domain, DOMAIN_QUESTIONS["general"])
@@ -232,7 +271,7 @@ class MockProvider(BaseLLMProvider):
             question=selected["question"],
             category=selected["category"],
             difficulty=difficulty,
-            rationale=f"Evaluates candidate depth on {selected['category']} for {experience_level} caliber.",
+            rationale=f"Evaluates candidate depth on {selected['category']} for {experience_level} caliber in {interview_type} mode.",
             expected_concepts=selected["expected_concepts"]
         )
 
@@ -243,7 +282,8 @@ class MockProvider(BaseLLMProvider):
         interview_type: str,
         difficulty: str,
         turns: List[Dict[str, Any]],
-        resume_text: Optional[str] = None
+        resume_text: Optional[str] = None,
+        job_description: Optional[str] = None
     ) -> FinalInterviewReport:
         scores = [t.get("turn_score", 70.0) for t in turns if t.get("turn_score") is not None]
         avg_score = round(sum(scores) / len(scores), 1) if scores else 75.0
