@@ -1,144 +1,220 @@
 <div align="center">
 
-# 🎙️ Intervue
+```
+  ___       _                               
+ |_ _|_ __ | |_ ___ _ ____   ___   _  ___   
+  | || '_ \| __/ _ \ '__\ \ / / | | |/ _ \  
+  | || | | | ||  __/ |   \ V /| |_| |  __/  
+ |___|_| |_|\__\___|_|    \_/  \__,_|\___|  
+```
 
-### Real-Time Adaptive AI Mock Interview Coach & Career Intelligence Platform
+### Executive AI Mock Interview Coach & Adaptive Engineering Assessor
 
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Async-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![License](https://img.shields.io/badge/License-MIT-neutral?style=flat-square)](LICENSE)
+*Rigorous simulation. Real-time cognitive adaptation. Deep blindspot diagnosis.*
 
-<p align="center">
-  <b>Intervue</b> is an elite, executive-grade AI mock interview platform that simulates rigorous engineering, behavioral, and architectural rounds. Built with an editorial Apple/Linear monochrome design system, Intervue pairs dynamic adaptive questioning with perceptive blindspot diagnosis.
-</p>
+<br/>
+
+[![Next.js](https://img.shields.io/badge/Next.js_15-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript_5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python_3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+
+<br/>
+
+[Key Highlights](#-key-capabilities) • [System Workflow](#-interview-workflow) • [Hidden Weakness Engine](#-hidden-weakness-detection-engine) • [Quickstart](#-quickstart-guide) • [Architecture](#-architecture) • [API Docs](#-rest-api-reference)
 
 </div>
 
 ---
 
-## ⚡ Key Highlights & Core Features
+## ⚡ Overview
 
-### 🎯 1. 5 Distinct Interview Modes
-Calibrate your session to match the exact interview format you are preparing for:
-- **Technical**: System architecture, concurrency invariants, memory models, distributed data, algorithms, and production debugging.
-- **Behavioral (STAR Method)**: Leadership situations, cross-functional conflicts, ownership trade-offs, and critical decision-making.
-- **HR Screening**: Career trajectory, motivation alignment, culture fit, and compensation negotiation handling.
-- **Mixed**: A balanced cross-section simulating real-world full-loop technical and executive onsite interviews.
-- **Job-Specific**: Strictly grounded in the target job description requirements, toolchains, and industry domain.
+**Intervue** is a professional-grade mock interview intelligence platform designed for senior software engineers, tech leads, and engineering leaders. 
 
----
+Unlike generic chatbots that regurgitate static lists of LeetCode questions, Intervue orchestrates an **adaptive state machine**: it maintains complete multi-turn memory, dynamically probes your architectural decisions, challenges edge cases when you perform well, and diagnoses latent communication blindspots that traditional interview tools miss.
 
-### 📄 2. Resume-Based Interview Grounding
-Upload your resume (PDF or TXT) or paste your experience:
-- **AI Extraction**: Automatically parses **Skills**, **Key Projects (with Tech Stack & Architecture)**, and **Work History**.
-- **Role Ingestion**: Recommends target role and seniority level with a 1-click apply button.
-- **Contextual Anchoring**: Questions are explicitly grounded in your actual career achievements with live `Grounded: [Project / Tech Stack]` badges.
-
----
-
-### 🧠 3. Real-Time Adaptive Engine with Full Memory
-Unlike generic chatbots with static question lists, Intervue remembers your past responses throughout the interview:
-- **Cross-Question Continuity**: Weaves technologies and decisions you brought up in previous turns into subsequent questions.
-- **Performance-Based Dynamic Difficulty**:
-  - **High Performance (>80%)**: Escalates into high-scale concurrency, distributed race conditions, and failover scenarios.
-  - **Identified Gaps (<60%)**: Calibrates to adjacent practical fundamentals without repeating failed questions.
-- **Targeted Follow-up Probes**: Automatically triggers deep-dive questions when a response leaves an important trade-off or ambiguity.
+```mermaid
+flowchart LR
+    A[📄 Resume / Role Setup] --> B[🧠 AI Ingestion & Grounding]
+    B --> C[🎙️ Adaptive Interview Room]
+    C -->|Real-time Turn Memory| D{Score & Depth Analysis}
+    D -->|>80% Depth| E[⚡ Escalate to Concurrency & Scale]
+    D -->|Ambiguity Found| F[🔍 Inject Deep-Dive Probe]
+    D -->|<60% Score| G[🎯 Calibrate Practical Fundamentals]
+    E & F & G --> C
+    C -->|Session Completed| H[📊 Scorecard & Hidden Weaknesses]
+```
 
 ---
 
-### ⚠️ 4. Hidden Weakness & Coaching Blindspot Detection
-A true interview coach doesn't just check if an answer is technically correct—it uncovers **invisible communication and cognitive habits**:
-- ⚠️ **"What vs Why" Bias**: *Explaining what a technology does rather than justifying why you chose it over alternatives.*
-- ⚠️ **Concept Without Concrete Evidence**: *Knowing theoretical concepts well, but omitting production numbers, throughput metrics, or architecture war stories.*
-- ⚠️ **Follow-up Degradation**: *Sounding confident initially, but becoming vague or evasive when drilled on deep edge cases.*
-- ⚠️ **Happy-Path Assumption**: *Assuming dependencies never fail and neglecting retries, timeouts, and graceful degradation.*
-- ⚠️ **Over-Engineering Bias**: *Recommending massive distributed clusters for simple monolithic workloads.*
+## 💎 Key Capabilities
 
-> Every detected blindspot includes **Observed Evidence** from your transcript and an actionable **Pro Coaching Tip** to eliminate the habit in real interviews.
-
----
-
-### 📊 5. Multi-Dimensional Evaluation Rubric
-Answers are rigorously scored across four weighted dimensions:
-- **Technical Accuracy (40%)**: Domain depth, architectural correctness, and edge case coverage.
-- **Direct Relevance (25%)**: Concise focus on what the interviewer asked without drifting.
-- **Depth & Completeness (20%)**: Proactive consideration of scalability, failure modes, and trade-offs.
-- **Clarity & Structure (15%)**: Clear communication, structured thinking, and conviction.
-- **Model Reference Answers**: Provides senior-level model answers for every single question.
+### 🎯 1. 5 Calibrated Interview Tracks
+| Mode | Target Scope | Focus Areas |
+|---|---|---|
+| **Technical** | Systems & Architecture | Invariants, concurrency, memory models, distributed data, profiling, algorithms |
+| **Behavioral** | Leadership & STAR | Team conflict, critical ownership trade-offs, stakeholder alignment, failure lessons |
+| **HR Screening** | Culture & Trajectory | Motivations, career growth arcs, compensation discussion framing, work philosophy |
+| **Mixed** | Full-Loop Simulation | Comprehensive cross-section of technical rigor, design trade-offs, and soft skills |
+| **Job-Specific** | Grounded Tailoring | Strictly aligns with target job description requirements, tools, and domain constraints |
 
 ---
 
-### 🔌 6. Pluggable Multi-LLM Provider Architecture
-Seamlessly switch between AI engines via `.env`:
-- **Google Gemini** (`gemini-1.5-flash`, `gemini-2.0-flash` or Pro)
-- **Groq** (`llama-3.3-70b-versatile` — ultra-fast sub-second generation)
-- **Ollama** (Local offline LLMs: `llama3.2`, `mistral`, `deepseek-r1`)
-- **Deterministic Mock Provider** (Zero API keys required — full offline simulator)
+### 📄 2. Resume-Grounded Question Generation
+Upload your real resume (**PDF / TXT**) or paste your work history:
+- **Automatic Extraction**: Parses **Skills**, **Production Projects** (with tech stack & architecture), and **Role Timelines**.
+- **1-Click Role Calibration**: Automatically recommends appropriate seniority (`Senior`, `Lead`, `Principal`) and title.
+- **Contextual Anchoring**: Every question cites your real accomplishments with explicit visual grounding badges (e.g. `📌 Grounded in: Payment Gateway / Node.js & Redis`).
 
 ---
 
-## 🏛️ Architecture & Project Structure
+### 🧠 3. Real-Time Adaptive Engine
+```
+Turn 1: Candidate mentions using Kafka with partition keys for ordering.
+           ↓ (AI remembers and tracks this architectural claim)
+Turn 2: "In your previous response you discussed Kafka partition keys. How does your consumer group 
+         handle rebalancing when a rebalance storm occurs during heavy consumer deployment?"
+```
+- **Performance-Driven Scaling**:
+  - **High Performance (>80%)**: The engine dynamically escalates to distributed race conditions, cache stampedes, and failover edge cases.
+  - **Foundational Gaps (<60%)**: Calibrates to practical fundamentals without condescension or repeating failed prompts.
+- **Follow-up Probe Injection**: Automatically triggers targeted deep dives when candidate answers leave important ambiguities.
+
+---
+
+### ⚠️ 4. Hidden Weakness Detection Engine
+
+> *"A great coach doesn't just grade right vs. wrong—they diagnose what you cannot see about yourself."*
+
+Intervue evaluates subtle cognitive habits and delivery patterns across multiple turns:
 
 ```
-Intervue/
-├── backend/                  # FastAPI (Python 3.10+)
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│  ⚠️ HIDDEN BLINDSPOT DIAGNOSIS                                                         │
+│                                                                                        │
+│  [What vs Why Bias]                                                                    │
+│  "You tend to describe what a technology does rather than explaining why you chose it."│
+│                                                                                        │
+│  • Evidence: In Q2, you detailed Redis cache operations without comparing memory       │
+│    overhead against in-memory LRU or justifying the extra network hop.                 │
+│                                                                                        │
+│  💡 Pro Coaching Tip: Follow the 'Why-First' rule: always name the 1-2 alternatives    │
+│    you rejected and the constraint that made your choice the winner.                   │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+<details>
+<summary><b>🔍 View All 5 Diagnosed Blindspot Archetypes</b></summary>
+<br/>
+
+1. **"What vs Why" Bias**: Describing API features and mechanics instead of defending architectural trade-offs against alternatives.
+2. **Concept Without Concrete Evidence**: Understanding textbook theory (CAP, ACID, Microservices) but omitting production numbers, throughput metrics, and war stories.
+3. **Follow-up Degradation**: Starting strong on high-level architecture, but becoming evasive or hand-wavy when probed on concrete failure protocols.
+4. **Happy-Path Assumption**: Assuming dependencies, networks, and disks never fail; forgetting timeouts, circuit breakers, and degradation modes.
+5. **Over-Engineering Bias**: Recommending heavy distributed clusters (Kafka + Kubernetes) for straightforward low-throughput use cases.
+
+</details>
+
+---
+
+### 📊 5. Multi-Dimensional Scoring Rubric
+
+Each turn is scored on a senior engineering rubric:
+
+$$\text{Turn Score} = (0.40 \times \text{Technical}) + (0.25 \times \text{Relevance}) + (0.20 \times \text{Depth}) + (0.15 \times \text{Clarity})$$
+
+- **Technical Accuracy (40%)**: Invariant correctness, domain mastery, and edge-case handling.
+- **Direct Relevance (25%)**: Concise precision without drifting off-topic.
+- **Depth & Completeness (20%)**: Proactive coverage of telemetry, failure recovery, and trade-offs.
+- **Clarity & Structure (15%)**: Executive presence, crisp communication, and strong structure.
+- **Senior Model Answers**: Model answers provided for every single question to accelerate practice.
+
+---
+
+## 🔌 Pluggable AI Provider Abstraction
+
+Switch AI providers instantly in `.env` without modifying a single line of application code:
+
+```
+                  ┌───────────────┐
+                  │ Base Provider │
+                  └───────┬───────┘
+          ┌───────────────┼───────────────┬───────────────┐
+          ▼               ▼               ▼               ▼
+    Google Gemini       Groq        Local Ollama    Offline Mock
+   (1.5 / 2.0 Flash) (Llama 3.3 70B) (Llama 3.2 / R1)  (Zero Config)
+```
+
+| Provider | Best For | Typical Latency | API Key Required? |
+|---|---|---|---|
+| **Google Gemini** | Complex reasoning & deep evaluation | ~1.2s | Yes (Free Tier available) |
+| **Groq Cloud** | Ultra-fast interactive turns | ~0.4s | Yes |
+| **Ollama** | 100% private, local air-gapped simulation | Local GPU dependent | No |
+| **Mock Provider** | Instant local offline development & testing | <50ms | **No API Key Needed** |
+
+---
+
+## 🏛️ Architecture & Clean Codebase
+
+```
+intervue/
+├── backend/                         # FastAPI (Python 3.10+)
 │   ├── app/
-│   │   ├── config.py         # Pydantic Settings & environment variables
-│   │   ├── main.py           # FastAPI lifecycle, middleware & CORS
+│   │   ├── config.py                # Pydantic Settings & environment config
+│   │   ├── main.py                  # Lifespan, CORS, and router registration
 │   │   ├── db/
-│   │   │   ├── models.py     # SQLAlchemy models (Session, Turns, Scores, Blindspots)
-│   │   │   └── session.py    # Async SQLAlchemy (PostgreSQL with SQLite fallback)
+│   │   │   ├── models.py            # SQLAlchemy models (Sessions, Turns, Blindspots)
+│   │   │   └── session.py           # Async engine (PostgreSQL with SQLite fallback)
 │   │   ├── schemas/
-│   │   │   ├── interview.py  # Request & response Pydantic DTOs
-│   │   │   └── llm.py        # Structured schemas for AI questions, evaluations & reports
+│   │   │   ├── interview.py         # Request/Response Pydantic DTOs
+│   │   │   └── llm.py               # Structured output contracts for AI
 │   │   ├── services/
-│   │   │   ├── interview_engine.py  # Real-time adaptive orchestrator & state machine
-│   │   │   ├── resume_parser.py     # PDF & text resume ingestion
-│   │   │   └── llm/                 # Pluggable AI provider abstraction
-│   │   │       ├── base.py          # Abstract LLM provider interface
-│   │   │       ├── factory.py       # Provider auto-discovery & selection
-│   │   │       ├── gemini.py        # Google Gemini integration
-│   │   │       ├── groq.py          # Groq Cloud integration
-│   │   │       ├── ollama.py        # Local Ollama client
-│   │   │       └── mock.py          # Offline heuristic simulation
+│   │   │   ├── interview_engine.py # Multi-turn adaptive state machine
+│   │   │   ├── resume_parser.py    # PDF & raw text parser
+│   │   │   └── llm/                 # Provider implementations
+│   │   │       ├── base.py          # Abstract provider interface & prompts
+│   │   │       ├── factory.py       # Auto-discovery provider factory
+│   │   │       ├── gemini.py        # Gemini client
+│   │   │       ├── groq.py          # Groq client
+│   │   │       ├── ollama.py        # Ollama client
+│   │   │       └── mock.py          # Deterministic offline engine
 │   │   └── routers/
-│   │       ├── interviews.py        # /api/interviews CRUD & turn answering
+│   │       ├── interviews.py        # /api/interviews CRUD & turn execution
 │   │       ├── resume.py            # /api/resume/parse & text analysis
 │   │       └── health.py            # /api/health
 │   ├── requirements.txt
 │   └── run.py
 │
-└── frontend/                 # Next.js 15 (App Router, Tailwind CSS, TypeScript)
+└── frontend/                        # Next.js 15 (App Router, Tailwind CSS)
     ├── src/
     │   ├── app/
-    │   │   ├── page.tsx             # Executive minimal landing page
+    │   │   ├── page.tsx             # Editorial landing page
     │   │   ├── setup/page.tsx       # Calibration wizard & resume intelligence card
-    │   │   ├── interview/[id]/      # Real-time interview room with adaptive tags
-    │   │   ├── report/[id]/         # Scorecard, blindspot diagnosis & transcript
-    │   │   └── history/page.tsx     # Session history & score records
-    │   ├── components/ui/           # Minimalist design tokens (Button, Badge, MetricCard)
-    │   ├── lib/api.ts               # Typed frontend API client
-    │   └── types/interview.ts       # Shared TypeScript domain types
+    │   │   ├── interview/[id]/      # Real-time interview room & adaptive tags
+    │   │   ├── report/[id]/         # Scorecard, blindspots & printable report
+    │   │   └── history/page.tsx     # Session history & score archive
+    │   ├── components/ui/           # Minimalist design tokens (Button, MetricCard, Badge)
+    │   ├── lib/api.ts               # Typed frontend client
+    │   └── types/interview.ts       # Shared domain TypeScript types
 ```
 
 ---
 
 ## 🚀 Quickstart Guide
 
-### 1. Clone & Configure Environment
+### 1. Clone & Set Environment
 
 ```bash
 git clone https://github.com/WoranutKhwanpongdee/Intervue.git
 cd Intervue
 ```
 
-Create `.env` in the root directory (or in `backend/`):
+Create a `.env` file in the root directory:
 
 ```env
-# Database (Defaults to PostgreSQL with auto-fallback to SQLite)
+# Database (Auto-fallback to local SQLite if PostgreSQL is offline)
 DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/intervue_db
 SQLITE_FALLBACK_URL=sqlite+aiosqlite:///./intervue.db
 
@@ -161,78 +237,82 @@ OLLAMA_MODEL=llama3.2
 NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ```
 
-> **💡 Zero-Config Offline Mode**: If no API keys are provided, Intervue automatically defaults to the **Mock Provider** so you can test the entire workflow, adaptive turns, and scorecards immediately with zero configuration!
+> **💡 Zero-Setup Offline Mode**: If no API keys are configured, Intervue automatically starts in **Mock Provider** mode so you can test every screen, resume extraction, adaptive turns, and scorecards immediately!
 
 ---
 
-### 2. Run Backend (FastAPI)
+### 2. Launch Backend (FastAPI)
 
 ```bash
 cd backend
 
-# Create & activate virtual environment
-# On Windows (PowerShell):
+# Create & activate virtual environment (Windows PowerShell)
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 
-# On macOS / Linux:
-# python3 -m venv .venv
-# source .venv/bin/activate
+# (On macOS / Linux)
+# python3 -m venv .venv && source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Start the server
+# Run server
 python run.py
 ```
-
-Backend will start at **`http://localhost:8000`**.  
-Interactive Swagger API docs available at **`http://localhost:8000/docs`**.
+- API starts at: `http://localhost:8000`
+- Interactive Swagger docs: `http://localhost:8000/docs`
 
 ---
 
-### 3. Run Frontend (Next.js)
+### 3. Launch Frontend (Next.js)
 
-In a new terminal window:
+In a separate terminal:
 
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start Next.js development server
 npm run dev
 ```
+- Web Application starts at: `http://localhost:3000`
 
-Open **`http://localhost:3000`** in your browser.
+---
+
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut | Action |
+|---|---|
+| `⌘ + Enter` / `Ctrl + Enter` | Submit current turn response for instant AI evaluation |
+| `Print / Save PDF` | One-click export of executive interview evaluation scorecard |
 
 ---
 
 ## 📡 REST API Reference
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/health` | Health check & active LLM provider status |
-| `POST` | `/api/interviews` | Initialize an interview session & generate Q1 |
-| `GET` | `/api/interviews` | List all previous interview sessions |
-| `GET` | `/api/interviews/{id}` | Get full interview session, turns & scorecard |
-| `POST` | `/api/interviews/{id}/turns/{turn_id}/answer` | Submit turn response, evaluate & adapt next turn |
-| `POST` | `/api/interviews/{id}/finish` | Conclude session early & compile final report |
-| `DELETE` | `/api/interviews/{id}` | Delete interview session record |
-| `POST` | `/api/resume/parse` | Parse PDF / TXT file and extract structured intelligence |
-| `POST` | `/api/resume/analyze-text` | Extract skills, projects & roles from raw resume text |
+```
+POST   /api/interviews                  # Initialize interview session & generate Q1
+GET    /api/interviews                  # List past interview sessions with scores
+GET    /api/interviews/{id}             # Get session details, turns, metrics & blindspots
+POST   /api/interviews/{id}/turns/{t}/answer # Submit response & adapt next question
+POST   /api/interviews/{id}/finish      # Conclude session early & compile final report
+DELETE /api/interviews/{id}             # Delete interview record
+POST   /api/resume/parse                # Parse resume PDF/TXT file
+POST   /api/resume/analyze-text         # Extract skills & projects from raw text
+GET    /api/health                      # Health check & active LLM provider status
+```
 
 ---
 
 ## 🎨 Design Philosophy
 
-- **Editorial Precision**: Clean, distraction-free monochrome typography inspired by Apple & Linear interfaces.
-- **Zero AI Slop**: No fake rainbow gradients, glowing blobs, or gratuitous badge clutter.
-- **High Utility**: Real keyboard shortcuts (`⌘/Ctrl + Enter`), responsive layout, and instant printable PDF scorecards.
+- **Apple / Linear Aesthetic**: Monochrome typography, crisp border contrasts, and restrained layout.
+- **Zero AI Slop**: Free of fake rainbow gradients, glowing blobs, and superfluous decorative noise.
+- **High Utility**: Built for focused practice, actionable feedback, and immediate preparation ROI.
 
 ---
 
-## 📄 License
+<div align="center">
 
-This project is licensed under the [MIT License](LICENSE).
+Made with engineering discipline by **Woranut Khwanpongdee**  
+Licensed under the [MIT License](LICENSE)
+
+</div>
