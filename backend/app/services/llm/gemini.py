@@ -174,10 +174,10 @@ Return a valid JSON object matching this schema:
 Role: {role_title} ({experience_level})
 Original Question: {parent_question}
 Candidate's Previous Answer: {user_answer}
-Evaluation Notes: {evaluation.feedback}
-Followup Intent: {evaluation.followup_reason or 'Probe trade-offs, scalability, or alternative approaches'}
+Evaluation Feedback: {evaluation.feedback}
+Follow-up Intent: {evaluation.followup_reason or 'Probe trade-offs, scalability, or alternative approaches'}
 
-Generate a sharp, realistic follow-up question.
+Generate a sharp, realistic follow-up question that directly tests the candidate on what they said.
 Return JSON:
 {{
   "question": "string (the follow-up question)",
@@ -185,7 +185,8 @@ Return JSON:
   "difficulty": "{difficulty}",
   "rationale": "string (why this follow-up tests candidate depth)",
   "expected_concepts": ["concept 1", "concept 2"],
-  "resume_context_used": null
+  "resume_context_used": null,
+  "adaptive_context": "string (brief note on how candidate's specific answer triggered this probe)"
 }}"""
         raw = await self._call_gemini(prompt)
         cleaned = clean_json_text(raw)
@@ -204,31 +205,56 @@ Return JSON:
         resume_text: Optional[str] = None,
         job_description: Optional[str] = None
     ) -> InterviewQuestion:
-        history_summary = []
+        detailed_history = []
         for t in previous_turns:
-            history_summary.append(f"Q: {t.get('question_text', '')} | Score: {t.get('turn_score', 'N/A')}")
+            num = t.get('turn_number', '?')
+            q = t.get('question_text', '')
+            ans = (t.get('user_answer') or '')[:350]
+            score = t.get('turn_score', 'N/A')
+            positives = ", ".join(t.get('key_positives') or [])
+            improvements = ", ".join(t.get('areas_for_improvement') or [])
+            detailed_history.append(
+                f"--- Turn #{num} ---\n"
+                f"Question: {q}\n"
+                f"Candidate's Answer: {ans}\n"
+                f"Score: {score}/100\n"
+                f"Demonstrated Strengths: {positives}\n"
+                f"Identified Gaps: {improvements}"
+            )
         
+        history_text = "\n\n".join(detailed_history) if detailed_history else "None (first turn)"
         job_context = f"\nJob Description Requirements:\n{job_description[:2000]}" if job_description else ""
         resume_context = f"\nResume Highlights:\n{resume_text[:2500]}" if resume_text else ""
-        prompt = f"""Generate question #{turn_number} of {total_questions} for this interview.
+
+        prompt = f"""You are conducting a REAL-TIME ADAPTIVE technical interview.
+Generate question #{turn_number} of {total_questions}.
 Role: {role_title} ({experience_level})
 Interview Mode: {interview_type} (Options: Technical, Behavioral, HR, Mixed, Job-specific)
-Difficulty: {difficulty}
+Target Base Difficulty: {difficulty}
 {job_context}
 {resume_context}
-Questions already covered:
-{chr(10).join(history_summary)}
 
-CRITICAL: If resume is provided, ground this question in a different project or stated toolchain from their resume that hasn't been probed yet.
+=== FULL CANDIDATE PERFORMANCE & ANSWER MEMORY ===
+{history_text}
+===================================================
+
+ADAPTIVE INTERVIEW RULES:
+1. Candidate Memory & Continuity: Analyze the candidate's previous responses above. If they mentioned specific architectural patterns, libraries, or design decisions, weave those into new questions where natural.
+2. Dynamic Calibration:
+   - If candidate scored strongly (>80%) on previous questions, elevate the depth with higher-tier failure modes, distributed concurrency, or scale bottlenecks.
+   - If candidate struggled (<60%) on previous questions, adapt by pivoting or testing foundational practical mastery without repeating the same exact prompt.
+3. Resume Grounding: If resume highlights are present, ground this question in a specific project or toolchain from the resume.
+4. Adaptive Context: In the 'adaptive_context' field, explicitly state in 1 concise sentence how their past answers/scores influenced this question.
 
 Return JSON:
 {{
   "question": "string",
   "category": "string",
-  "difficulty": "{difficulty}",
+  "difficulty": "string (Easy / Medium / Hard based on real-time adaptation)",
   "rationale": "string",
   "expected_concepts": ["concept 1", "concept 2"],
-  "resume_context_used": "string or null"
+  "resume_context_used": "string or null",
+  "adaptive_context": "string (e.g., 'Adapted: Candidate scored 90% on Q1; escalating to multi-region distributed failover')"
 }}"""
         raw = await self._call_gemini(prompt)
         cleaned = clean_json_text(raw)

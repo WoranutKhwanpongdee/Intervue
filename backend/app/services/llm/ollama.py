@@ -120,7 +120,8 @@ Return JSON:
   "difficulty": "{difficulty}",
   "rationale": "string",
   "expected_concepts": ["concept 1"],
-  "resume_context_used": null
+  "resume_context_used": null,
+  "adaptive_context": "string"
 }}"""
         raw = await self._call_ollama(prompt)
         return InterviewQuestion(**json.loads(clean_json_text(raw)))
@@ -137,9 +138,24 @@ Return JSON:
         resume_text: Optional[str] = None,
         job_description: Optional[str] = None
     ) -> InterviewQuestion:
-        prompt = f"""Generate question #{turn_number} of {total_questions} for {role_title} ({experience_level}), mode: {interview_type}, difficulty: {difficulty}.
+        detailed_history = []
+        for t in previous_turns:
+            num = t.get('turn_number', '?')
+            q = t.get('question_text', '')
+            ans = (t.get('user_answer') or '')[:300]
+            score = t.get('turn_score', 'N/A')
+            detailed_history.append(f"Q{num}: {q} | Candidate Answer: {ans} | Score: {score}/100")
+
+        history_text = "\n".join(detailed_history) if detailed_history else "None (first turn)"
+        prompt = f"""Generate adaptive question #{turn_number} of {total_questions} for {role_title} ({experience_level}), mode: {interview_type}, difficulty: {difficulty}.
 {f'Job Description: {job_description[:2000]}' if job_description else ''}
 {f'Resume Highlights: {resume_text[:2000]}' if resume_text else ''}
+Previous Turns Memory:
+{history_text}
+
+Rules:
+1. Remember candidate's earlier answers and build upon them.
+2. Adapt difficulty dynamically based on candidate performance.
 Return JSON:
 {{
   "question": "string",
@@ -147,7 +163,8 @@ Return JSON:
   "difficulty": "{difficulty}",
   "rationale": "string",
   "expected_concepts": ["concept 1"],
-  "resume_context_used": "string or null"
+  "resume_context_used": "string or null",
+  "adaptive_context": "string"
 }}"""
         raw = await self._call_ollama(prompt)
         return InterviewQuestion(**json.loads(clean_json_text(raw)))

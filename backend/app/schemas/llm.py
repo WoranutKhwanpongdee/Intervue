@@ -9,6 +9,7 @@ class InterviewQuestion(BaseModel):
     rationale: str = Field(description="Why this question is relevant to the role, resume projects, and candidate level")
     expected_concepts: List[str] = Field(default_factory=list, description="Key concepts or technical facets expected in an ideal answer")
     resume_context_used: Optional[str] = Field(default=None, description="Specific project, skill, or experience from resume that inspired this question")
+    adaptive_context: Optional[str] = Field(default=None, description="Explanation of how this question adapted in real-time based on candidate's previous answers, strengths, or gaps")
 
 
 class AnswerEvaluation(BaseModel):

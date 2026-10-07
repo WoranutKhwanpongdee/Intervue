@@ -25,6 +25,7 @@ class QuestionTurnResponse(BaseModel):
     difficulty: str
     expected_points: List[str] = []
     resume_context_used: Optional[str] = None
+    adaptive_context: Optional[str] = None
     user_answer: Optional[str] = None
     answered_at: Optional[datetime] = None
     technical_score: Optional[float] = None

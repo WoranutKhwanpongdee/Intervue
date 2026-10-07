@@ -317,13 +317,17 @@ class MockProvider(BaseLLMProvider):
         evaluation: AnswerEvaluation,
         difficulty: str
     ) -> InterviewQuestion:
+        # Extract keywords from answer to reference adaptively
+        words = [w.strip(".,;:()\"'") for w in user_answer.split() if len(w) > 4]
+        key_term = words[0] if words else "your described architecture"
         return InterviewQuestion(
-            question="Building on your previous answer, what happens if traffic spikes 10x or network latency degrades significantly? What specific failure modes would emerge and how would you mitigate them?",
-            category="Failure Modes & Scale Deep Dive",
+            question=f"Building directly on your response regarding '{key_term}': what happens if downstream dependency latency spikes or network partitions occur? How would you ensure data consistency and graceful degradation?",
+            category="Adaptive Follow-up Deep Dive",
             difficulty=difficulty,
             rationale="Validates whether candidate understands operational resilience beyond happy-path implementations.",
             expected_concepts=["Graceful degradation", "Backpressure / Circuit breakers", "Fallback strategies", "Telemetry alerts"],
-            resume_context_used=None
+            resume_context_used=None,
+            adaptive_context=f"Adapted from your answer: Probing resilience & edge cases around '{key_term}'"
         )
 
     async def generate_next_question(
@@ -345,6 +349,27 @@ class MockProvider(BaseLLMProvider):
 
         custom_q = selected["question"]
         resume_context_used = None
+        adaptive_context = None
+
+        # Check last turn performance for real-time adaptation
+        last_turn = previous_turns[-1] if previous_turns else None
+        if last_turn:
+            last_score = last_turn.get("turn_score") or 70
+            last_ans = last_turn.get("user_answer") or ""
+            words = [w.strip(".,;:()\"'") for w in last_ans.split() if len(w) > 4]
+            pivot_concept = words[1] if len(words) > 1 else (words[0] if words else "your previous points")
+
+            if last_score >= 80:
+                difficulty = "Hard"
+                adaptive_context = f"Adapted (High Score {round(last_score)}%): Escalating depth into distributed scale, race conditions, and failovers"
+                custom_q = f"In your previous answer, you demonstrated strong intuition around '{pivot_concept}'. Let's push this further: {selected['question']} How would your design handle high concurrency and distributed data race conditions?"
+            elif last_score < 60:
+                difficulty = "Medium"
+                adaptive_context = f"Adapted (Calibrating): Pivoting to practical real-world fundamentals after Q{last_turn.get('turn_number')}"
+                custom_q = f"Let's explore another core pillar: {selected['question']}"
+            else:
+                adaptive_context = f"Adapted: Synthesizing concepts from Q{last_turn.get('turn_number')} response"
+                custom_q = f"Connecting back to your approach on '{pivot_concept}': {selected['question']}"
 
         if resume_text and len(resume_text) > 30 and turn_number == 2:
             analysis = await self.analyze_resume(resume_text)
@@ -359,7 +384,8 @@ class MockProvider(BaseLLMProvider):
             difficulty=difficulty,
             rationale=f"Evaluates candidate depth on {selected['category']} for {experience_level} caliber in {interview_type} mode.",
             expected_concepts=selected["expected_concepts"],
-            resume_context_used=resume_context_used
+            resume_context_used=resume_context_used,
+            adaptive_context=adaptive_context
         )
 
     async def generate_final_report(

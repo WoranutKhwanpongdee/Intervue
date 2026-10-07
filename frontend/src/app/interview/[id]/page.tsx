@@ -161,6 +161,10 @@ export default function InterviewRoomPage({
           </div>
 
           <div className="flex items-center gap-4 text-xs font-mono text-neutral-500">
+            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50">
+              <Sparkles className="h-3 w-3 animate-pulse text-amber-500" />
+              <span>Adaptive AI Active</span>
+            </span>
             <span className="flex items-center gap-1.5">
               <Clock className="h-3 w-3" />
               {formatTimer(elapsedSeconds)}
@@ -199,6 +203,17 @@ export default function InterviewRoomPage({
                 <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                   <FileText className="h-3 w-3" />
                   Grounded: {currentTurn.resume_context_used}
+                </span>
+              </>
+            )}
+
+            {/* Adaptive Context Badge */}
+            {currentTurn.adaptive_context && (
+              <>
+                <span>·</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                  <Sparkles className="h-3 w-3 text-amber-500" />
+                  {currentTurn.adaptive_context}
                 </span>
               </>
             )}
@@ -304,6 +319,12 @@ export default function InterviewRoomPage({
 
                     {isExpanded && (
                       <div className="p-4 pt-0 border-t border-neutral-200 dark:border-neutral-800 space-y-4 mt-3">
+                        {turn.adaptive_context && (
+                          <div className="text-[11px] font-mono px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 w-fit">
+                            ⚡ {turn.adaptive_context}
+                          </div>
+                        )}
+
                         {/* Candidate response */}
                         <div className="space-y-1">
                           <span className="text-[11px] font-mono text-neutral-400 uppercase">Your Answer</span>

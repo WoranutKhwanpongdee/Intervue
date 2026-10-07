@@ -50,7 +50,9 @@ class InterviewEngine:
             question_text=initial_q.question,
             question_category=initial_q.category,
             difficulty=initial_q.difficulty,
-            expected_points=initial_q.expected_concepts
+            expected_points=initial_q.expected_concepts,
+            resume_context_used=initial_q.resume_context_used,
+            adaptive_context=initial_q.adaptive_context
         )
         self.db.add(first_turn)
         await self.db.commit()
@@ -136,18 +138,31 @@ class InterviewEngine:
                 question_text=followup_q.question,
                 question_category=followup_q.category,
                 difficulty=followup_q.difficulty,
-                expected_points=followup_q.expected_concepts
+                expected_points=followup_q.expected_concepts,
+                resume_context_used=followup_q.resume_context_used,
+                adaptive_context=followup_q.adaptive_context or f"Follow-up probe on response to Q{current_turn.turn_number}: {evaluation.followup_reason or 'Drilling deeper into trade-offs'}"
             )
             self.db.add(next_turn)
         elif core_answered_count < total_core_needed:
-            # Generate next main question
+            # Generate next main question with full memory of previous answers & performance
             previous_turns_data = [
                 {
+                    "turn_number": t.turn_number,
                     "question_text": t.question_text,
+                    "category": t.question_category,
+                    "difficulty": t.difficulty,
+                    "user_answer": t.user_answer,
                     "turn_score": t.turn_score,
-                    "category": t.question_category
+                    "technical_score": t.technical_score,
+                    "relevance_score": t.relevance_score,
+                    "clarity_score": t.clarity_score,
+                    "completeness_score": t.completeness_score,
+                    "feedback": t.feedback,
+                    "key_positives": t.key_positives or [],
+                    "areas_for_improvement": t.areas_for_improvement or []
                 }
                 for t in session.turns
+                if t.user_answer is not None
             ]
             next_q = await self.provider.generate_next_question(
                 role_title=session.role_title,
@@ -167,7 +182,9 @@ class InterviewEngine:
                 question_text=next_q.question,
                 question_category=next_q.category,
                 difficulty=next_q.difficulty,
-                expected_points=next_q.expected_concepts
+                expected_points=next_q.expected_concepts,
+                resume_context_used=next_q.resume_context_used,
+                adaptive_context=next_q.adaptive_context
             )
             self.db.add(next_turn)
         else:

@@ -250,6 +250,12 @@ export default function FinalReportPage({
                         </div>
                       )}
 
+                      {turn.adaptive_context && (
+                        <div className="text-[11px] font-mono px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 w-fit">
+                          ⚡ {turn.adaptive_context}
+                        </div>
+                      )}
+
                       <div className="space-y-1">
                         <span className="text-[11px] font-mono text-neutral-400 uppercase">Question</span>
                         <p className="text-xs text-neutral-900 dark:text-neutral-100 font-medium">

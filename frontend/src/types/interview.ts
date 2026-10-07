@@ -36,6 +36,7 @@ export interface QuestionTurn {
   difficulty: string;
   expected_points: string[];
   resume_context_used?: string | null;
+  adaptive_context?: string | null;
   user_answer?: string | null;
   answered_at?: string | null;
   technical_score?: number | null;

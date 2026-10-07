@@ -119,7 +119,7 @@ Evaluation: {evaluation.feedback}
 Reason: {evaluation.followup_reason or 'Probe trade-offs and edge cases'}
 
 Return JSON with fields:
-question (str), category (str), difficulty (str), rationale (str), expected_concepts (list of str), resume_context_used (str or null)"""
+question (str), category (str), difficulty (str), rationale (str), expected_concepts (list of str), resume_context_used (str or null), adaptive_context (str)"""
         raw = await self._call_groq(prompt)
         return InterviewQuestion(**json.loads(clean_json_text(raw)))
 
@@ -135,20 +135,32 @@ question (str), category (str), difficulty (str), rationale (str), expected_conc
         resume_text: Optional[str] = None,
         job_description: Optional[str] = None
     ) -> InterviewQuestion:
-        history = [f"Q: {t.get('question_text')}" for t in previous_turns]
+        detailed_history = []
+        for t in previous_turns:
+            num = t.get('turn_number', '?')
+            q = t.get('question_text', '')
+            ans = (t.get('user_answer') or '')[:300]
+            score = t.get('turn_score', 'N/A')
+            detailed_history.append(f"Q{num}: {q} | Candidate answered: {ans} | Score: {score}/100")
+
+        history_text = "\n".join(detailed_history) if detailed_history else "None (first turn)"
         job_context = f"\nJob Requirements:\n{job_description[:2000]}" if job_description else ""
         resume_context = f"\nResume Highlights:\n{resume_text[:2500]}" if resume_text else ""
-        prompt = f"""Generate question #{turn_number} of {total_questions} for a {role_title} ({experience_level}) interview.
+        prompt = f"""You are conducting a REAL-TIME ADAPTIVE technical interview.
+Generate question #{turn_number} of {total_questions} for a {role_title} ({experience_level}) interview.
 Mode: {interview_type}, Difficulty: {difficulty}
 {job_context}
 {resume_context}
-Previous questions:
-{chr(10).join(history)}
+Candidate Previous Turns:
+{history_text}
 
-If resume is provided, explore a different project or stated tool from their background.
+ADAPTIVE RULES:
+1. Candidate Memory: Reference or build upon technical choices/tools candidate mentioned in earlier answers.
+2. Dynamic Calibration: If candidate scored high (>80%), escalate difficulty and explore edge cases/concurrency; if low (<60%), calibrate to adjacent practical fundamentals.
+3. If resume is provided, explore a different project or stated tool from their background.
 
 Return JSON with fields:
-question (str), category (str), difficulty (str), rationale (str), expected_concepts (list of str), resume_context_used (str or null)"""
+question (str), category (str), difficulty (str), rationale (str), expected_concepts (list of str), resume_context_used (str or null), adaptive_context (str)"""
         raw = await self._call_groq(prompt)
         return InterviewQuestion(**json.loads(clean_json_text(raw)))
 
