@@ -110,6 +110,7 @@ class InterviewEngine:
         current_turn.key_positives = evaluation.key_positives
         current_turn.areas_for_improvement = evaluation.areas_for_improvement
         current_turn.sample_ideal_answer = evaluation.sample_ideal_answer
+        current_turn.latent_blindspot = evaluation.latent_blindspot
 
         # Count how many core (non-followup) questions have been answered
         core_answered_count = len([t for t in session.turns if not t.is_followup and t.user_answer is not None])
@@ -232,6 +233,7 @@ class InterviewEngine:
         session.summary = report.summary
         session.strengths = report.strengths
         session.weaknesses = report.weaknesses
+        session.hidden_weaknesses = [hw.model_dump() if hasattr(hw, 'model_dump') else hw for hw in report.hidden_weaknesses]
         session.recommended_topics = report.recommended_topics
         session.closing_advice = report.closing_advice
 

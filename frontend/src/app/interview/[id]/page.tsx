@@ -351,6 +351,15 @@ export default function InterviewRoomPage({
                           </div>
                         )}
 
+                        {turn.latent_blindspot && (
+                          <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 text-xs text-amber-900 dark:text-amber-200 font-sans">
+                            <span className="font-semibold text-[11px] font-mono block uppercase text-amber-700 dark:text-amber-400 mb-0.5">
+                              Coach Blindspot Note:
+                            </span>
+                            {turn.latent_blindspot}
+                          </div>
+                        )}
+
                         {/* Sample Ideal Answer */}
                         {turn.sample_ideal_answer && (
                           <div className="space-y-1">

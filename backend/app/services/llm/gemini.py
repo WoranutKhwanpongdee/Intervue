@@ -142,6 +142,9 @@ Calculate technical_score (0-100), relevance_score (0-100), clarity_score (0-100
 turn_score should be a weighted combination: (technical * 0.4 + relevance * 0.25 + clarity * 0.15 + completeness * 0.2).
 Set requires_followup to true only if the candidate answered partially or mentioned something intriguing that warrants a brief follow-up clarification, and total turns remaining permits it.
 
+HIDDEN BLINDSPOT COACHING DIAGNOSIS:
+Diagnose any latent communication or technical presentation blindspot in this specific response (e.g. 'You know the concept, but your answer lacks concrete production numbers or examples', 'You focused on what the tool does rather than explaining why you chose it over alternatives', or 'You became evasive on edge cases').
+
 Return a valid JSON object matching this schema:
 {{
   "technical_score": float (0-100),
@@ -153,6 +156,7 @@ Return a valid JSON object matching this schema:
   "key_positives": ["positive point 1", "positive point 2"],
   "areas_for_improvement": ["improvement point 1", "improvement point 2"],
   "sample_ideal_answer": "string (model answer illustrating ideal response)",
+  "latent_blindspot": "string or null (perceptive coach diagnosis of unstated communication weakness)",
   "requires_followup": boolean,
   "followup_reason": "string or null"
 }}"""
@@ -280,7 +284,7 @@ Return JSON:
                 f"Feedback: {t.get('feedback', '')}\n"
             )
 
-        prompt = f"""Generate an executive-grade Final Interview Evaluation Report.
+        prompt = f"""Generate an executive-grade Final Interview Evaluation Report with HIDDEN WEAKNESS & BLINDSPOT DETECTION.
 Role: {role_title} ({experience_level})
 Interview Mode: {interview_type}
 Difficulty: {difficulty}
@@ -289,7 +293,15 @@ Difficulty: {difficulty}
 Full Interview Transcript & Scores:
 {chr(10).join(turns_summary)}
 
-Synthesize overall performance across all questions, including alignment with resume background and target role expectations.
+CRITICAL COACHING TASK:
+Identify 2-3 HIDDEN WEAKNESSES / BLINDSPOTS across the entire session:
+Look beyond basic technical correctness. Spot subtle communication and thinking habits:
+- 'What vs Why Bias' (Explaining what a technology does rather than why it was chosen)
+- 'Lacks Concrete Examples' (Knows theoretical concepts but omits real-world examples, metrics, or architecture war stories)
+- 'Follow-up Degradation' (Strong initial answers but becomes less specific or defensive during deep-dive follow-ups)
+- 'Happy Path Assumption' (Overlooking failure modes, partial network partitions, timeouts, and degradation)
+- 'Over-Engineering' (Proposing massive distributed tools where simple designs suffice)
+
 Return JSON:
 {{
   "overall_score": float (0-100 overall composite),
@@ -297,6 +309,14 @@ Return JSON:
   "summary": "string (comprehensive executive summary)",
   "strengths": ["specific strength 1", "specific strength 2", "specific strength 3"],
   "weaknesses": ["specific gap 1", "specific gap 2"],
+  "hidden_weaknesses": [
+    {{
+      "tag": "What vs Why Bias | Lacks Concrete Examples | Follow-up Degradation | Happy-Path Bias | Over-Engineering",
+      "insight": "⚠️ You tend to describe what a technology does rather than explaining why you chose it over alternatives.",
+      "evidence": "When asked about caching in Q2, you defined Redis operations without comparing memory overhead against in-memory LRU or explaining cache invalidation trade-offs.",
+      "coaching_tip": "In real interviews, use the 'Why-First' rule: always name the trade-off or alternative you rejected before describing the tool."
+    }}
+  ],
   "recommended_topics": ["topic/framework/concept 1", "topic 2", "topic 3"],
   "closing_advice": "string (actionable closing advice)"
 }}"""

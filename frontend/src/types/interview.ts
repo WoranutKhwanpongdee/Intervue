@@ -3,6 +3,13 @@ export type InterviewMode = 'Technical' | 'Behavioral' | 'HR' | 'Mixed' | 'Job-s
 export type InterviewType = InterviewMode;
 export type Difficulty = 'Easy' | 'Medium' | 'Hard';
 
+export interface HiddenWeakness {
+  tag: string;
+  insight: string;
+  evidence: string;
+  coaching_tip: string;
+}
+
 export interface ResumeProject {
   name: string;
   technologies: string[];
@@ -48,6 +55,7 @@ export interface QuestionTurn {
   key_positives: string[];
   areas_for_improvement: string[];
   sample_ideal_answer?: string | null;
+  latent_blindspot?: string | null;
   created_at: string;
 }
 
@@ -66,6 +74,7 @@ export interface InterviewSession {
   summary?: string | null;
   strengths: string[];
   weaknesses: string[];
+  hidden_weaknesses?: HiddenWeakness[];
   recommended_topics: string[];
   closing_advice?: string | null;
   created_at: string;
@@ -110,6 +119,7 @@ export interface TurnEvaluationResult {
     key_positives: string[];
     areas_for_improvement: string[];
     sample_ideal_answer: string;
+    latent_blindspot?: string | null;
     requires_followup: boolean;
     followup_reason?: string | null;
   };

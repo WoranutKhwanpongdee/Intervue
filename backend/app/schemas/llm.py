@@ -22,8 +22,16 @@ class AnswerEvaluation(BaseModel):
     key_positives: List[str] = Field(default_factory=list, description="Top positive aspects of candidate's answer")
     areas_for_improvement: List[str] = Field(default_factory=list, description="Specific things to improve or clarify")
     sample_ideal_answer: str = Field(description="Concise model answer demonstrating how a top candidate would answer")
+    latent_blindspot: Optional[str] = Field(default=None, description="Perceptive coaching insight on invisible communication/cognitive pattern in this turn")
     requires_followup: bool = Field(default=False, description="Whether candidate's answer left an important ambiguity or gap that warrants a targeted follow-up")
     followup_reason: Optional[str] = Field(default=None, description="Reason why follow-up is warranted if any")
+
+
+class HiddenWeakness(BaseModel):
+    tag: str = Field(description="Short classification tag, e.g., 'What vs Why Bias', 'Lacks Concrete Evidence', 'Follow-up Degradation', 'Theoretical vs Practical'")
+    insight: str = Field(description="Perceptive coach diagnosis of the blindspot, e.g., 'You know the concept, but your answers lack concrete examples.'")
+    evidence: str = Field(description="Specific turn, phrasing, or pattern observed across answers that revealed this blindspot")
+    coaching_tip: str = Field(description="Actionable rule or mental model to eliminate this blindspot in real interviews")
 
 
 class ResumeProject(BaseModel):
@@ -54,5 +62,6 @@ class FinalInterviewReport(BaseModel):
     summary: str = Field(description="Executive summary of the candidate's interview performance")
     strengths: List[str] = Field(default_factory=list, description="Top candidate strengths demonstrated across turns")
     weaknesses: List[str] = Field(default_factory=list, description="Primary weaknesses or gaps to address")
+    hidden_weaknesses: List[HiddenWeakness] = Field(default_factory=list, description="Latent behavioral and communication blindspots detected across candidate responses")
     recommended_topics: List[str] = Field(default_factory=list, description="Specific topics or technologies to study next")
     closing_advice: str = Field(description="Practical, encouraging next steps for real-world interviews")

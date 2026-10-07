@@ -2,7 +2,19 @@
 
 import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { Printer, RotateCcw, ChevronDown, ChevronUp, ArrowRight } from "lucide-react";
+import {
+  Printer,
+  RotateCcw,
+  ChevronDown,
+  ChevronUp,
+  ArrowRight,
+  AlertTriangle,
+  Lightbulb,
+  Compass,
+  Sparkles,
+  FileText,
+  ShieldAlert
+} from "lucide-react";
 import { api } from "@/lib/api";
 import { InterviewSession } from "@/types/interview";
 import { Button } from "@/components/ui/Button";
@@ -144,6 +156,62 @@ export default function FinalReportPage({
           </div>
         </div>
 
+        {/* ⚠️ Hidden Weakness & Blindspot Detection Section */}
+        {session.hidden_weaknesses && session.hidden_weaknesses.length > 0 && (
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-mono uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5 font-semibold">
+                  <ShieldAlert className="h-4 w-4 text-amber-500" />
+                  <span>Hidden Weaknesses & Blindspots</span>
+                </h3>
+                <p className="text-[11px] text-neutral-500 mt-0.5">
+                  Perceptive coach diagnosis of unstated communication and architectural habits.
+                </p>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900">
+                Coach Diagnosis
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {session.hidden_weaknesses.map((hw, idx) => (
+                <div
+                  key={idx}
+                  className="p-4 rounded-xl border border-amber-200/80 dark:border-amber-900/60 bg-amber-50/40 dark:bg-amber-950/20 space-y-2.5"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-white dark:bg-neutral-900 border border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-300 font-medium">
+                      {hw.tag}
+                    </span>
+                  </div>
+
+                  <p className="text-xs sm:text-sm font-medium text-neutral-900 dark:text-neutral-100 leading-snug">
+                    {hw.insight}
+                  </p>
+
+                  {hw.evidence && (
+                    <div className="text-xs text-neutral-600 dark:text-neutral-400 bg-white/80 dark:bg-neutral-900/80 p-3 rounded-lg border border-neutral-200/60 dark:border-neutral-800/80 font-sans leading-relaxed">
+                      <span className="text-[11px] font-mono uppercase text-neutral-400 block mb-0.5">Observed Pattern / Evidence:</span>
+                      {hw.evidence}
+                    </div>
+                  )}
+
+                  {hw.coaching_tip && (
+                    <div className="flex items-start gap-2 text-xs text-amber-900 dark:text-amber-200 pt-1">
+                      <Lightbulb className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-semibold">Pro Coaching Tip: </span>
+                        <span>{hw.coaching_tip}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Strengths & Weaknesses */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="space-y-3">
@@ -283,6 +351,15 @@ export default function FinalReportPage({
                           <p className="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed">
                             {turn.feedback}
                           </p>
+                        </div>
+                      )}
+
+                      {turn.latent_blindspot && (
+                        <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 text-xs text-amber-900 dark:text-amber-200 font-sans">
+                          <span className="font-semibold text-[11px] font-mono block uppercase text-amber-700 dark:text-amber-400 mb-1">
+                            Coach Blindspot Note:
+                          </span>
+                          {turn.latent_blindspot}
                         </div>
                       )}
 

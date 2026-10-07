@@ -8,7 +8,8 @@ from app.schemas.llm import (
     FinalInterviewReport,
     ResumeAnalysis,
     ResumeProject,
-    ResumeExperience
+    ResumeExperience,
+    HiddenWeakness
 )
 from app.services.llm.base import BaseLLMProvider
 
@@ -294,6 +295,15 @@ class MockProvider(BaseLLMProvider):
 
         requires_followup = not is_followup and (word_count >= 25) and (turn_number < total_questions) and (random.random() > 0.4)
 
+        # Micro latent blindspot detection for this turn
+        latent_blindspot = None
+        if word_count < 30:
+            latent_blindspot = "⚠️ You know the concept, but your answer lacks concrete production examples or metrics."
+        elif "why" not in user_answer.lower() and "because" not in user_answer.lower() and "trade" not in user_answer.lower():
+            latent_blindspot = "⚠️ You tend to describe what a technology does rather than explaining why you chose it."
+        elif is_followup:
+            latent_blindspot = "⚠️ Your initial answers are strong, but you become less specific when asked follow-up questions."
+
         return AnswerEvaluation(
             technical_score=tech,
             relevance_score=rel,
@@ -304,6 +314,7 @@ class MockProvider(BaseLLMProvider):
             key_positives=positives,
             areas_for_improvement=improvements,
             sample_ideal_answer=sample_answer,
+            latent_blindspot=latent_blindspot,
             requires_followup=requires_followup,
             followup_reason="Candidate mentioned high-level approach; probe deeper on edge case handling and scaling limits." if requires_followup else None
         )
@@ -423,6 +434,28 @@ class MockProvider(BaseLLMProvider):
             "Could proactively detail operational observability and metric telemetry",
             "Need deeper articulation of distributed failure modes and edge cases"
         ]
+
+        hidden_weaknesses = [
+            HiddenWeakness(
+                tag="What vs Why Bias",
+                insight="⚠️ You tend to describe what a technology does rather than explaining why you chose it.",
+                evidence="When discussing component design and data fetching, you explained how the APIs work rather than comparing memory/network trade-offs against lighter alternatives.",
+                coaching_tip="Always follow the 'Why-First' rule: state the 1-2 alternatives you rejected and the specific constraint that made your choice the winner."
+            ),
+            HiddenWeakness(
+                tag="Lacks Concrete Examples",
+                insight="⚠️ You know the core concepts, but your answers lack concrete examples and production metrics.",
+                evidence="Across architectural questions, explanations stayed mostly conceptual without citing throughput numbers (e.g. QPS, p99 latency) or specific deployment scale.",
+                coaching_tip="Anchor every design with at least one measurable anchor (e.g., 'In a system handling 5k RPS, this prevents DB connection pool exhaustion')."
+            ),
+            HiddenWeakness(
+                tag="Follow-up Degradation",
+                insight="⚠️ Your technical answers are strong initially, but you become less specific when asked follow-up questions.",
+                evidence="When probed on distributed failure recovery and latency spikes, your responses defaulted back to high-level summaries rather than walking through exact failure protocols.",
+                coaching_tip="When a follow-up probe arrives, pause for 3 seconds and name the exact failure protocol (e.g. exponential backoff with jitter + dead-letter queue) step-by-step."
+            )
+        ]
+
         recommended_topics = [
             "System Design & Distributed Data Patterns (Saga, Outbox, CDC)",
             "Performance Profiling, Bottleneck Analysis, and Benchmarking",
@@ -436,6 +469,7 @@ class MockProvider(BaseLLMProvider):
             summary=summary,
             strengths=strengths,
             weaknesses=weaknesses,
+            hidden_weaknesses=hidden_weaknesses,
             recommended_topics=recommended_topics,
             closing_advice=closing_advice
         )

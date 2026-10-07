@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from app.schemas.llm import AnswerEvaluation, FinalInterviewReport, ResumeAnalysis
+from app.schemas.llm import AnswerEvaluation, FinalInterviewReport, ResumeAnalysis, HiddenWeakness
 
 
 class CreateInterviewRequest(BaseModel):
@@ -37,6 +37,7 @@ class QuestionTurnResponse(BaseModel):
     key_positives: List[str] = []
     areas_for_improvement: List[str] = []
     sample_ideal_answer: Optional[str] = None
+    latent_blindspot: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -88,6 +89,7 @@ class InterviewSessionDetail(BaseModel):
     summary: Optional[str] = None
     strengths: List[str] = []
     weaknesses: List[str] = []
+    hidden_weaknesses: List[HiddenWeakness] = []
     recommended_topics: List[str] = []
     closing_advice: Optional[str] = None
     created_at: datetime
