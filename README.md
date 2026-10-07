@@ -18,7 +18,8 @@
 <table align="center">
   <tr>
     <td align="center"><a href="#overview"><b>&nbsp;Overview&nbsp;</b></a></td>
-    <td align="center"><a href="#interview-workflow"><b>&nbsp;Workflow&nbsp;</b></a></td>
+    <td align="center"><a href="#live-session-preview"><b>&nbsp;Live Simulation&nbsp;</b></a></td>
+    <td align="center"><a href="#comparison"><b>&nbsp;Comparison&nbsp;</b></a></td>
     <td align="center"><a href="#core-features"><b>&nbsp;Core Features&nbsp;</b></a></td>
     <td align="center"><a href="#hidden-weakness-engine"><b>&nbsp;Hidden Weaknesses&nbsp;</b></a></td>
     <td align="center"><a href="#quickstart"><b>&nbsp;Quickstart&nbsp;</b></a></td>
@@ -39,18 +40,66 @@ Unlike generic chatbots that follow static question lists, Intervue operates as 
 
 ---
 
+## Live Session Preview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  🎙️ INTERVUE SESSION #842  ·  Senior Backend Engineer  ·  🎯 Technical Track  ·  ⚡ Adaptive AI Active       │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                             │
+│  [Question 01] · Cache Invalidation Invariants                                                              │
+│  📌 Grounded in: Distributed Payment Gateway (Redis & Go)                                                    │
+│                                                                                                             │
+│  "You listed your Go payment gateway on your resume. When caching idempotent payment tokens in Redis, how  │
+│   do you ensure data consistency during network partitions without introducing cache stampedes?"            │
+│                                                                                                             │
+│  Candidate Answer: "We implemented write-through caching with Redis Mutex locks on cache misses..."         │
+│                                                                                                             │
+│  ---------------------------------------------------------------------------------------------------------  │
+│  📊 TURN EVALUATION: 88/100                                                                                 │
+│  • Technical: 90/100  ·  Relevance: 92/100  ·  Clarity: 85/100  ·  Depth: 84/100                           │
+│  • 💡 Coach Blindspot: "You explained how Mutex locks work, but omitted lock lease expiry under high load." │
+│                                                                                                             │
+│  ---------------------------------------------------------------------------------------------------------  │
+│  ⚡ ADAPTIVE TURN 02 (Difficulty Scaled: Medium → Hard)                                                     │
+│  ⚡ Adapted: Candidate demonstrated strong Redis locking; escalating to multi-region distributed split-brain│
+│                                                                                                             │
+│  "In your previous answer, you relied on single-instance Redis locks. If your payment service operates in   │
+│   active-active multi-region AWS setup, how do you prevent split-brain double-capture scenarios?"           │
+│                                                                                                             │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Comparison
+
+Why engineering leaders and senior candidates practice on Intervue instead of generic tools:
+
+| Feature | Intervue | Generic ChatGPT Prompts | Traditional LeetCode Apps |
+|---|:---:|:---:|:---:|
+| **Real-Time Turn Memory & Continuity** | **Yes (Full Multi-Turn Context)** | Fragmented / Forgets | No (Static questions) |
+| **Dynamic Difficulty Scaling** | **Yes (>80% escalates to edge cases)** | No | No |
+| **Hidden Blindspot Diagnosis ("What vs Why")** | **Yes (5 Cognitive Archetypes)** | No | No |
+| **Resume Project & Stack Grounding** | **Yes (Automatic PDF/Text Ingestion)**| Manual Copy-Paste | No |
+| **Senior Multi-Metric Rubric** | **Yes (4 Weighted Dimensions)** | Basic text feedback | Binary pass/fail tests |
+| **Offline / Local Air-Gapped AI** | **Yes (Local Ollama & Zero-Key Mock)**| No | No |
+| **Printable Executive PDF Scorecard** | **Yes (1-Click Printable)** | No | No |
+
+---
+
 ## Interview Workflow
 
 ```mermaid
 flowchart LR
-    A[Resume / Role Setup] --> B[AI Ingestion & Grounding]
-    B --> C[Adaptive Interview Room]
+    A[📄 Resume / Role Setup] --> B[🧠 AI Ingestion & Grounding]
+    B --> C[🎙️ Adaptive Interview Room]
     C -->|Real-time Turn Memory| D{Score & Depth Analysis}
-    D -->|>80% Depth| E[Escalate to Concurrency & Scale]
-    D -->|Ambiguity Found| F[Inject Deep-Dive Follow-up]
-    D -->|<60% Score| G[Calibrate Practical Fundamentals]
+    D -->|>80% Depth| E[⚡ Escalate to Concurrency & Scale]
+    D -->|Ambiguity Found| F[🔍 Inject Deep-Dive Follow-up]
+    D -->|<60% Score| G[🎯 Calibrate Practical Fundamentals]
     E & F & G --> C
-    C -->|Session Completed| H[Scorecard & Hidden Weaknesses]
+    C -->|Session Completed| H[📊 Scorecard & Hidden Weaknesses]
 ```
 
 ---
@@ -70,7 +119,7 @@ flowchart LR
 Upload your real resume (**PDF / TXT**) or paste your work history:
 - **Automatic Extraction**: Parses **Skills**, **Production Projects** (with tech stack & architecture), and **Role Timelines**.
 - **1-Click Role Calibration**: Automatically recommends appropriate seniority (`Senior`, `Lead`, `Principal`) and title.
-- **Contextual Anchoring**: Every question cites your real accomplishments with explicit visual grounding badges (e.g. `Grounded in: Payment Gateway / Node.js & Redis`).
+- **Contextual Anchoring**: Every question cites your real accomplishments with explicit visual grounding badges (e.g. `📌 Grounded in: Payment Gateway / Node.js & Redis`).
 
 ### 3. Real-Time Adaptive Engine
 - **Cross-Question Continuity**: Weaves technologies and decisions you brought up in previous turns into subsequent questions.
@@ -103,14 +152,37 @@ Intervue evaluates subtle cognitive habits and delivery patterns across multiple
 ```
 
 <details>
-<summary><b>View All 5 Diagnosed Blindspot Archetypes</b></summary>
+<summary><b>🔍 Expand: The 5 Diagnosed Blindspot Archetypes & Fixes</b></summary>
 <br />
 
-1. **"What vs Why" Bias**: Describing API features and mechanics instead of defending architectural trade-offs against alternatives.
-2. **Concept Without Concrete Evidence**: Understanding textbook theory (CAP, ACID, Microservices) but omitting production numbers, throughput metrics, and war stories.
-3. **Follow-up Degradation**: Starting strong on high-level architecture, but becoming evasive or hand-wavy when probed on concrete failure protocols.
-4. **Happy-Path Assumption**: Assuming dependencies, networks, and disks never fail; forgetting timeouts, circuit breakers, and degradation modes.
-5. **Over-Engineering Bias**: Recommending heavy distributed clusters (Kafka + Kubernetes) for straightforward low-throughput use cases.
+| Archetype | The Latent Habit | How Intervue Diagnoses It | The Coaching Solution |
+|---|---|---|---|
+| **What vs. Why Bias** | Describing features instead of justifying decisions. | Candidate explains API syntax without mentioning rejected alternatives. | Use the *Why-First* rule: name 2 rejected options before stating your choice. |
+| **Concept Without Evidence** | Textbook theory without production grounding. | Answering with buzzwords (CAP, ACID) without scale numbers or latency targets. | Anchor every design with a concrete metric (e.g., *"At 10,000 QPS..."*). |
+| **Follow-up Degradation** | Vague or evasive under deep probing. | Initial high-level answer was strong, but struggles when drilled on edge cases. | Pause 3 seconds and name the exact protocol (e.g. *Exponential backoff + Jitter*). |
+| **Happy-Path Assumption** | Assuming systems never fail. | Forgetting retries, timeouts, disk fills, or network partitions. | Proactively state your failure recovery path before the interviewer asks. |
+| **Over-Engineering Bias** | Premature distributed complexity. | Proposing Kafka/Kubernetes clusters for basic CRUD workflows. | Start with the simplest resilient design, then scale up only as constraints require. |
+
+</details>
+
+---
+
+## Interactive Sample Practice Session
+
+<details>
+<summary><b>📖 Click to Inspect a Full Turn & Senior Model Answer Breakdown</b></summary>
+<br />
+
+#### Question
+> *"Walk me through how you design an idempotent payment processing endpoint in a distributed system, and how you guarantee exact-once business outcomes even when client network retries occur during slow database commits."*
+
+#### Senior Model Answer
+> *"To achieve idempotent payment processing, we establish a strict boundary using a unique idempotency key generated by the client (e.g. UUIDv4 in the `Idempotency-Key` header).*
+> 
+> 1. *Atomic Lock & Claim: When the request arrives, we execute an atomic `SET key IN_PROGRESS NX EX 120` in Redis. If the key already exists, concurrent duplicate requests receive an immediate `409 Conflict` or are polled until the original completes.*
+> 2. *Database Transaction with Outbox: Within a single PostgreSQL ACID transaction, we insert the idempotency record, apply ledger state transitions, and enqueue payment events via the Transactional Outbox pattern.*
+> 3. *Gateway Execution: Only after DB commit succeeds do we execute the external PSP call (Stripe/Adyen) passing the key. If network drops before response arrives, subsequent client retries read the committed DB outcome and return cached HTTP responses without re-executing charges.*
+> 4. *Failure Protocol: If the database commit times out, the Redis lock expires automatically, and subsequent reconciliation workers verify state with the payment provider before allowing retry.*
 
 </details>
 
@@ -126,7 +198,6 @@ $$\text{Turn Score} = (0.40 \times \text{Technical}) + (0.25 \times \text{Releva
 - **Direct Relevance (25%)**: Concise precision without drifting off-topic.
 - **Depth & Completeness (20%)**: Proactive coverage of telemetry, failure recovery, and trade-offs.
 - **Clarity & Structure (15%)**: Executive presence, crisp communication, and strong structure.
-- **Senior Model Answers**: Model answers provided for every single question to accelerate practice.
 
 ---
 
@@ -134,12 +205,12 @@ $$\text{Turn Score} = (0.40 \times \text{Technical}) + (0.25 \times \text{Releva
 
 Switch AI providers instantly in `.env` without modifying application code:
 
-| Provider | Best For | Typical Latency | API Key Required? |
-|---|---|---|---|
-| **Google Gemini** | Complex reasoning & deep evaluation | ~1.2s | Yes (Free tier available) |
-| **Groq Cloud** | Ultra-fast interactive turns | ~0.4s | Yes |
-| **Ollama** | 100% private, local air-gapped simulation | Local GPU dependent | No |
-| **Mock Provider** | Instant local offline development & testing | <50ms | **No API Key Needed** |
+| Provider | Status | Best For | Typical Latency | API Key Required? |
+|---|:---:|---|:---:|:---:|
+| **Google Gemini** | 🟢 Production | Deep multi-turn reasoning & rubric scoring | ~1.2s | Yes (Free Tier Available) |
+| **Groq Cloud** | 🟢 Production | Ultra-fast conversational inference | ~0.4s | Yes |
+| **Ollama** | 🔒 Private | Local offline air-gapped simulation | GPU Dependent | **No** |
+| **Mock Provider** | ⚡ Instant | Local testing & development | <50ms | **No API Key Needed** |
 
 ---
 
@@ -218,7 +289,7 @@ OLLAMA_MODEL=llama3.2
 NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ```
 
-> **Zero-Setup Offline Mode**: If no API keys are configured, Intervue automatically starts in **Mock Provider** mode so you can test every screen, resume extraction, adaptive turns, and scorecards immediately with zero external dependencies.
+> **💡 Zero-Setup Offline Mode**: If no API keys are configured, Intervue automatically starts in **Mock Provider** mode so you can test every screen, resume extraction, adaptive turns, and scorecards immediately with zero external dependencies.
 
 ### 2. Launch Backend (FastAPI)
 
