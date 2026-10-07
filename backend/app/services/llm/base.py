@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
-from app.schemas.llm import InterviewQuestion, AnswerEvaluation, FinalInterviewReport
+from app.schemas.llm import InterviewQuestion, AnswerEvaluation, FinalInterviewReport, ResumeAnalysis
 
 
 SYSTEM_PROMPT = """You are Intervue, an elite, professional technical and executive interviewer.
@@ -13,11 +13,19 @@ Support 5 Interview Modes:
 4. Mixed: Balanced cross-section of technical competence, problem solving, and behavioral maturity.
 5. Job-specific: Tailored strictly to the exact target job description and candidate resume, focusing on required toolchains, domain-specific workflows, and real industry scenarios.
 
+RESUME GROUNDING RULE:
+Whenever a candidate's resume or project highlights are provided, you MUST ground questions and follow-ups in their specific stated projects, technologies, and achievements. Cite the specific project name or architectural challenge from their resume in your question prompt and explain what context was used.
+
 Always respond in strict JSON adhering to the specified schema."""
 
 
 class BaseLLMProvider(ABC):
     """Abstract interface for LLM providers supporting structured generation."""
+
+    @abstractmethod
+    async def analyze_resume(self, resume_text: str) -> ResumeAnalysis:
+        """Parse raw resume text into structured skills, projects, experiences, and topics."""
+        pass
 
     @abstractmethod
     async def generate_initial_question(

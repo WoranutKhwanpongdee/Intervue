@@ -2,7 +2,7 @@ import json
 import logging
 from typing import List, Dict, Any, Optional
 import httpx
-from app.schemas.llm import InterviewQuestion, AnswerEvaluation, FinalInterviewReport
+from app.schemas.llm import InterviewQuestion, AnswerEvaluation, FinalInterviewReport, ResumeAnalysis
 from app.services.llm.base import BaseLLMProvider, SYSTEM_PROMPT
 from app.services.llm.gemini import clean_json_text
 
@@ -34,6 +34,18 @@ class OllamaProvider(BaseLLMProvider):
             data = resp.json()
             return data["message"]["content"]
 
+    async def analyze_resume(self, resume_text: str) -> ResumeAnalysis:
+        prompt = f"""Extract structured profile from this resume:
+{resume_text[:6000]}
+
+Return JSON with fields:
+candidate_name (str or null), inferred_role (str), skills (list of str),
+projects (list of objects with: name, technologies, description),
+experiences (list of objects with: company, role, duration, highlights),
+suggested_topics (list of str)"""
+        raw = await self._call_ollama(prompt)
+        return ResumeAnalysis(**json.loads(clean_json_text(raw)))
+
     async def generate_initial_question(
         self,
         role_title: str,
@@ -45,14 +57,18 @@ class OllamaProvider(BaseLLMProvider):
     ) -> InterviewQuestion:
         prompt = f"""Generate initial interview question for {role_title} ({experience_level}), mode: {interview_type}, difficulty: {difficulty}.
 {f'Job Description: {job_description[:2000]}' if job_description else ''}
-{f'Resume: {resume_text[:2000]}' if resume_text else ''}
+{f'Resume Context: {resume_text[:2000]}' if resume_text else ''}
+
+If resume is provided, formulate the question around their stated projects or tools.
+
 Return JSON:
 {{
   "question": "string",
   "category": "string",
   "difficulty": "{difficulty}",
   "rationale": "string",
-  "expected_concepts": ["concept 1", "concept 2"]
+  "expected_concepts": ["concept 1", "concept 2"],
+  "resume_context_used": "string or null"
 }}"""
         raw = await self._call_ollama(prompt)
         return InterviewQuestion(**json.loads(clean_json_text(raw)))
@@ -103,7 +119,8 @@ Return JSON:
   "category": "Deep Dive",
   "difficulty": "{difficulty}",
   "rationale": "string",
-  "expected_concepts": ["concept 1"]
+  "expected_concepts": ["concept 1"],
+  "resume_context_used": null
 }}"""
         raw = await self._call_ollama(prompt)
         return InterviewQuestion(**json.loads(clean_json_text(raw)))
@@ -122,13 +139,15 @@ Return JSON:
     ) -> InterviewQuestion:
         prompt = f"""Generate question #{turn_number} of {total_questions} for {role_title} ({experience_level}), mode: {interview_type}, difficulty: {difficulty}.
 {f'Job Description: {job_description[:2000]}' if job_description else ''}
+{f'Resume Highlights: {resume_text[:2000]}' if resume_text else ''}
 Return JSON:
 {{
   "question": "string",
   "category": "string",
   "difficulty": "{difficulty}",
   "rationale": "string",
-  "expected_concepts": ["concept 1"]
+  "expected_concepts": ["concept 1"],
+  "resume_context_used": "string or null"
 }}"""
         raw = await self._call_ollama(prompt)
         return InterviewQuestion(**json.loads(clean_json_text(raw)))

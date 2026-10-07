@@ -2,6 +2,7 @@ import {
   CreateInterviewPayload,
   InterviewSession,
   InterviewSessionSummary,
+  ResumeAnalysis,
   ResumeParseResult,
   TurnEvaluationResult
 } from "@/types/interview";
@@ -76,7 +77,7 @@ class ApiClient {
     }
   }
 
-  // Resume Upload
+  // Resume Upload & Analysis
   async uploadResume(file: File): Promise<ResumeParseResult> {
     const formData = new FormData();
     formData.append("file", file);
@@ -98,6 +99,13 @@ class ApiClient {
     }
 
     return response.json();
+  }
+
+  async analyzeResumeText(text: string): Promise<ResumeAnalysis> {
+    return this.request<ResumeAnalysis>("/resume/analyze-text", {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    });
   }
 
   // Health check

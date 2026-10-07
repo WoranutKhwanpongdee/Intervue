@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from app.schemas.llm import AnswerEvaluation, FinalInterviewReport
+from app.schemas.llm import AnswerEvaluation, FinalInterviewReport, ResumeAnalysis
 
 
 class CreateInterviewRequest(BaseModel):
@@ -24,6 +24,7 @@ class QuestionTurnResponse(BaseModel):
     question_category: str
     difficulty: str
     expected_points: List[str] = []
+    resume_context_used: Optional[str] = None
     user_answer: Optional[str] = None
     answered_at: Optional[datetime] = None
     technical_score: Optional[float] = None
@@ -100,3 +101,4 @@ class ResumeParseResponse(BaseModel):
     filename: str
     extracted_text: str
     char_count: int
+    analysis: Optional[ResumeAnalysis] = None

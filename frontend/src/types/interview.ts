@@ -3,6 +3,28 @@ export type InterviewMode = 'Technical' | 'Behavioral' | 'HR' | 'Mixed' | 'Job-s
 export type InterviewType = InterviewMode;
 export type Difficulty = 'Easy' | 'Medium' | 'Hard';
 
+export interface ResumeProject {
+  name: string;
+  technologies: string[];
+  description: string;
+}
+
+export interface ResumeExperience {
+  company: string;
+  role: string;
+  duration?: string | null;
+  highlights: string[];
+}
+
+export interface ResumeAnalysis {
+  candidate_name?: string | null;
+  inferred_role?: string | null;
+  skills: string[];
+  projects: ResumeProject[];
+  experiences: ResumeExperience[];
+  suggested_topics: string[];
+}
+
 export interface QuestionTurn {
   id: string;
   session_id: string;
@@ -13,6 +35,7 @@ export interface QuestionTurn {
   question_category: string;
   difficulty: string;
   expected_points: string[];
+  resume_context_used?: string | null;
   user_answer?: string | null;
   answered_at?: string | null;
   technical_score?: number | null;
@@ -98,4 +121,5 @@ export interface ResumeParseResult {
   filename: string;
   extracted_text: string;
   char_count: number;
+  analysis?: ResumeAnalysis | null;
 }

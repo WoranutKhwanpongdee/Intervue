@@ -3,7 +3,7 @@ import logging
 import re
 from typing import List, Dict, Any, Optional
 import httpx
-from app.schemas.llm import InterviewQuestion, AnswerEvaluation, FinalInterviewReport
+from app.schemas.llm import InterviewQuestion, AnswerEvaluation, FinalInterviewReport, ResumeAnalysis
 from app.services.llm.base import BaseLLMProvider, SYSTEM_PROMPT
 
 logger = logging.getLogger("intervue.llm.gemini")
@@ -51,6 +51,38 @@ class GeminiProvider(BaseLLMProvider):
                 logger.error(f"Failed to parse Gemini response structure: {data}")
                 raise RuntimeError(f"Unexpected response structure from Gemini: {e}")
 
+    async def analyze_resume(self, resume_text: str) -> ResumeAnalysis:
+        prompt = f"""Analyze this resume and extract structured profile data in JSON format.
+Resume Text:
+{resume_text[:6000]}
+
+Return valid JSON adhering to this exact schema:
+{{
+  "candidate_name": "string or null",
+  "inferred_role": "string (e.g. Senior Frontend Engineer, Full Stack Tech Lead)",
+  "skills": ["skill 1", "skill 2", "skill 3", ...],
+  "projects": [
+    {{
+      "name": "Project Name",
+      "technologies": ["tech 1", "tech 2"],
+      "description": "Brief summary of project role and achievements"
+    }}
+  ],
+  "experiences": [
+    {{
+      "company": "Company Name",
+      "role": "Position Title",
+      "duration": "e.g. 2022 - Present",
+      "highlights": ["highlight 1", "highlight 2"]
+    }}
+  ],
+  "suggested_topics": ["Topic 1", "Topic 2", "Topic 3"]
+}}"""
+        raw = await self._call_gemini(prompt)
+        cleaned = clean_json_text(raw)
+        data = json.loads(cleaned)
+        return ResumeAnalysis(**data)
+
     async def generate_initial_question(
         self,
         role_title: str,
@@ -70,13 +102,16 @@ Difficulty: {difficulty}
 {job_context}
 {resume_context}
 
+CRITICAL: If candidate resume is provided, your question MUST directly refer to a specific project, technology stack, or challenge stated in their resume.
+
 Return a valid JSON object matching this schema:
 {{
-  "question": "string (the interview question to ask candidate)",
-  "category": "string (e.g. Architecture, Core Fundamentals, Behavioral)",
+  "question": "string (the interview question to ask candidate, citing their resume project/experience if provided)",
+  "category": "string (e.g. Architecture, Core Fundamentals, Behavioral, Project Deep-Dive)",
   "difficulty": "{difficulty}",
   "rationale": "string (brief explanation why this question is suitable)",
-  "expected_concepts": ["concept 1", "concept 2", "concept 3"]
+  "expected_concepts": ["concept 1", "concept 2", "concept 3"],
+  "resume_context_used": "string or null (mention which specific project/technology from resume this question investigates)"
 }}"""
         raw = await self._call_gemini(prompt)
         cleaned = clean_json_text(raw)
@@ -97,7 +132,7 @@ Return a valid JSON object matching this schema:
     ) -> AnswerEvaluation:
         prompt = f"""Evaluate candidate's answer to the following interview question.
 Role: {role_title} ({experience_level})
-Interview Type: {interview_type}
+Interview Mode: {interview_type}
 Question: {question_text}
 Expected Key Concepts: {json.dumps(expected_concepts)}
 Candidate's Answer: {user_answer}
@@ -149,7 +184,8 @@ Return JSON:
   "category": "Follow-up Deep Dive",
   "difficulty": "{difficulty}",
   "rationale": "string (why this follow-up tests candidate depth)",
-  "expected_concepts": ["concept 1", "concept 2"]
+  "expected_concepts": ["concept 1", "concept 2"],
+  "resume_context_used": null
 }}"""
         raw = await self._call_gemini(prompt)
         cleaned = clean_json_text(raw)
@@ -173,16 +209,17 @@ Return JSON:
             history_summary.append(f"Q: {t.get('question_text', '')} | Score: {t.get('turn_score', 'N/A')}")
         
         job_context = f"\nJob Description Requirements:\n{job_description[:2000]}" if job_description else ""
+        resume_context = f"\nResume Highlights:\n{resume_text[:2500]}" if resume_text else ""
         prompt = f"""Generate question #{turn_number} of {total_questions} for this interview.
 Role: {role_title} ({experience_level})
 Interview Mode: {interview_type} (Options: Technical, Behavioral, HR, Mixed, Job-specific)
 Difficulty: {difficulty}
 {job_context}
+{resume_context}
 Questions already covered:
 {chr(10).join(history_summary)}
 
-Ensure this question aligns with the selected mode and explores a complementary dimension.
-{f'Resume Highlights: {resume_text[:2000]}' if resume_text else ''}
+CRITICAL: If resume is provided, ground this question in a different project or stated toolchain from their resume that hasn't been probed yet.
 
 Return JSON:
 {{
@@ -190,7 +227,8 @@ Return JSON:
   "category": "string",
   "difficulty": "{difficulty}",
   "rationale": "string",
-  "expected_concepts": ["concept 1", "concept 2"]
+  "expected_concepts": ["concept 1", "concept 2"],
+  "resume_context_used": "string or null"
 }}"""
         raw = await self._call_gemini(prompt)
         cleaned = clean_json_text(raw)
@@ -221,10 +259,11 @@ Role: {role_title} ({experience_level})
 Interview Mode: {interview_type}
 Difficulty: {difficulty}
 {f'Target Job Requirements: {job_description[:2000]}' if job_description else ''}
+{f'Candidate Resume Profile: {resume_text[:2000]}' if resume_text else ''}
 Full Interview Transcript & Scores:
 {chr(10).join(turns_summary)}
 
-Synthesize overall performance across all questions.
+Synthesize overall performance across all questions, including alignment with resume background and target role expectations.
 Return JSON:
 {{
   "overall_score": float (0-100 overall composite),

@@ -1,7 +1,15 @@
 import random
+import re
 import logging
 from typing import List, Dict, Any, Optional
-from app.schemas.llm import InterviewQuestion, AnswerEvaluation, FinalInterviewReport
+from app.schemas.llm import (
+    InterviewQuestion,
+    AnswerEvaluation,
+    FinalInterviewReport,
+    ResumeAnalysis,
+    ResumeProject,
+    ResumeExperience
+)
 from app.services.llm.base import BaseLLMProvider
 
 logger = logging.getLogger("intervue.llm.mock")
@@ -100,6 +108,14 @@ DOMAIN_QUESTIONS = {
     ]
 }
 
+KNOWN_SKILLS_KEYWORDS = [
+    "TypeScript", "JavaScript", "Python", "Go", "Golang", "Java", "C++", "Rust",
+    "React", "Next.js", "Vue", "Angular", "Tailwind CSS", "Node.js", "Express", "FastAPI", "Django", "Flask",
+    "PostgreSQL", "MySQL", "MongoDB", "Redis", "Elasticsearch", "Cassandra", "DynamoDB",
+    "Docker", "Kubernetes", "AWS", "GCP", "Azure", "Terraform", "CI/CD", "GitHub Actions",
+    "GraphQL", "REST API", "gRPC", "Kafka", "RabbitMQ", "Microservices", "System Design"
+]
+
 
 class MockProvider(BaseLLMProvider):
     """Realistic deterministic provider useful for testing and offline environments."""
@@ -122,6 +138,60 @@ class MockProvider(BaseLLMProvider):
             return "backend"
         return "frontend"
 
+    async def analyze_resume(self, resume_text: str) -> ResumeAnalysis:
+        """Heuristic analysis of resume text to extract skills and project highlights."""
+        text_lower = resume_text.lower()
+        
+        # Detect skills
+        detected_skills = []
+        for skill in KNOWN_SKILLS_KEYWORDS:
+            if re.search(r'\b' + re.escape(skill.lower()) + r'\b', text_lower):
+                detected_skills.append(skill)
+        
+        if not detected_skills:
+            detected_skills = ["TypeScript", "React", "Node.js", "PostgreSQL", "Docker"]
+
+        # Parse projects or synthesize from text
+        projects = [
+            ResumeProject(
+                name="High-Throughput Web Application",
+                technologies=detected_skills[:3],
+                description="Engineered scalable frontend/backend architecture handling core user workflows and state synchronization."
+            ),
+            ResumeProject(
+                name="Distributed API & Microservices Platform",
+                technologies=detected_skills[2:6] if len(detected_skills) >= 6 else detected_skills,
+                description="Designed resilient service endpoints with database caching, telemetry, and automated deployment pipelines."
+            )
+        ]
+
+        experiences = [
+            ResumeExperience(
+                company="Tech Solutions Inc.",
+                role="Senior Software Engineer",
+                duration="2022 - Present",
+                highlights=[
+                    f"Spearheaded development of core features using {', '.join(detected_skills[:3])}.",
+                    "Reduced latency and improved system reliability through code profiling and test automation."
+                ]
+            )
+        ]
+
+        suggested_topics = [
+            f"Deep-dive into {detected_skills[0]} architectural patterns" if detected_skills else "System Architecture",
+            f"State management, caching with {detected_skills[1] if len(detected_skills) > 1 else 'Redis'}",
+            "Handling distributed edge cases and operational failures"
+        ]
+
+        return ResumeAnalysis(
+            candidate_name="Candidate",
+            inferred_role="Senior Software Engineer",
+            skills=detected_skills[:12],
+            projects=projects,
+            experiences=experiences,
+            suggested_topics=suggested_topics
+        )
+
     async def generate_initial_question(
         self,
         role_title: str,
@@ -135,18 +205,26 @@ class MockProvider(BaseLLMProvider):
         pool = DOMAIN_QUESTIONS.get(domain, DOMAIN_QUESTIONS["general"])
         selected = pool[0]
         
+        resume_context_used = None
         custom_q = selected["question"]
-        if job_description and len(job_description) > 30 and domain == "job_specific":
-            custom_q = f"Looking at the requirements for this role: {selected['question']}"
-        elif resume_text and len(resume_text) > 50:
-            custom_q = f"Looking at your background in {role_title}: {selected['question']}"
+
+        if resume_text and len(resume_text) > 30:
+            analysis = await self.analyze_resume(resume_text)
+            top_skill = analysis.skills[0] if analysis.skills else "your primary stack"
+            top_proj = analysis.projects[0].name if analysis.projects else "your recent production project"
+            
+            custom_q = f"In your resume, you highlighted working on '{top_proj}' using {top_skill}. Walk me through a challenging architectural decision you made on this project, and how you handled unexpected edge cases or performance bottlenecks?"
+            resume_context_used = f"Grounded in: {top_proj} ({top_skill})"
+        elif job_description and len(job_description) > 30 and domain == "job_specific":
+            custom_q = f"Looking at the core requirements for this position: {selected['question']}"
 
         return InterviewQuestion(
             question=custom_q,
-            category=selected["category"],
+            category=selected["category"] if not resume_context_used else "Resume Project Deep-Dive",
             difficulty=difficulty,
-            rationale=f"Evaluates core proficiency for a {experience_level} {role_title} in {interview_type} mode.",
-            expected_concepts=selected["expected_concepts"]
+            rationale=f"Evaluates candidate's actual hands-on engineering experience and architectural ownership for a {experience_level} {role_title}.",
+            expected_concepts=selected["expected_concepts"],
+            resume_context_used=resume_context_used
         )
 
     async def evaluate_answer(
@@ -164,7 +242,6 @@ class MockProvider(BaseLLMProvider):
         words = user_answer.strip().split()
         word_count = len(words)
         
-        # Keyword matching heuristics
         matched_concepts = []
         answer_lower = user_answer.lower()
         for concept in expected_concepts:
@@ -172,7 +249,6 @@ class MockProvider(BaseLLMProvider):
             if any(t in answer_lower for t in tokens):
                 matched_concepts.append(concept)
         
-        # Base scores
         if word_count < 20:
             base_tech = 45.0
             base_rel = 55.0
@@ -184,7 +260,7 @@ class MockProvider(BaseLLMProvider):
             base_rel = 75.0
             base_clar = 72.0
             base_comp = 65.0
-            feedback = "Solid baseline explanation, but could go deeper into operational consequences and concrete examples."
+            feedback = "Solid baseline explanation, but could go deeper into operational consequences and concrete examples from your past projects."
         else:
             base_tech = 78.0 + min(len(matched_concepts) * 5, 18)
             base_rel = 85.0
@@ -192,7 +268,6 @@ class MockProvider(BaseLLMProvider):
             base_comp = 80.0
             feedback = "Well-articulated response with clear practical intuition. Good demonstration of core principles and problem structure."
 
-        # Clamp between 0 and 100
         tech = min(max(base_tech, 30.0), 96.0)
         rel = min(max(base_rel, 40.0), 98.0)
         clar = min(max(base_clar, 40.0), 95.0)
@@ -211,7 +286,7 @@ class MockProvider(BaseLLMProvider):
         ]
 
         sample_answer = (
-            f"In a production environment for a {role_title}, I would address this by establishing clear boundaries. "
+            f"In my experience with {role_title} architectures, I approached this by establishing clear invariant boundaries. "
             f"First, focusing on {expected_concepts[0] if expected_concepts else 'fundamental invariants'}, "
             f"ensuring resilience through {expected_concepts[1] if len(expected_concepts) > 1 else 'defensive architecture'}, "
             f"and continuously verifying behavior with comprehensive telemetry."
@@ -247,7 +322,8 @@ class MockProvider(BaseLLMProvider):
             category="Failure Modes & Scale Deep Dive",
             difficulty=difficulty,
             rationale="Validates whether candidate understands operational resilience beyond happy-path implementations.",
-            expected_concepts=["Graceful degradation", "Backpressure / Circuit breakers", "Fallback strategies", "Telemetry alerts"]
+            expected_concepts=["Graceful degradation", "Backpressure / Circuit breakers", "Fallback strategies", "Telemetry alerts"],
+            resume_context_used=None
         )
 
     async def generate_next_question(
@@ -267,12 +343,23 @@ class MockProvider(BaseLLMProvider):
         idx = (turn_number - 1) % len(pool)
         selected = pool[idx]
 
+        custom_q = selected["question"]
+        resume_context_used = None
+
+        if resume_text and len(resume_text) > 30 and turn_number == 2:
+            analysis = await self.analyze_resume(resume_text)
+            if len(analysis.skills) >= 2:
+                s2 = analysis.skills[1]
+                custom_q = f"You also listed proficiency with '{s2}' on your resume. How have you applied {s2} in production to solve concurrency, state management, or data consistency issues?"
+                resume_context_used = f"Grounded in: Resume Skill '{s2}'"
+
         return InterviewQuestion(
-            question=selected["question"],
-            category=selected["category"],
+            question=custom_q,
+            category=selected["category"] if not resume_context_used else "Resume Skill Deep-Dive",
             difficulty=difficulty,
             rationale=f"Evaluates candidate depth on {selected['category']} for {experience_level} caliber in {interview_type} mode.",
-            expected_concepts=selected["expected_concepts"]
+            expected_concepts=selected["expected_concepts"],
+            resume_context_used=resume_context_used
         )
 
     async def generate_final_report(

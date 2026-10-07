@@ -2,7 +2,7 @@ import json
 import logging
 from typing import List, Dict, Any, Optional
 import httpx
-from app.schemas.llm import InterviewQuestion, AnswerEvaluation, FinalInterviewReport
+from app.schemas.llm import InterviewQuestion, AnswerEvaluation, FinalInterviewReport, ResumeAnalysis
 from app.services.llm.base import BaseLLMProvider, SYSTEM_PROMPT
 from app.services.llm.gemini import clean_json_text
 
@@ -37,6 +37,19 @@ class GroqProvider(BaseLLMProvider):
             data = resp.json()
             return data["choices"][0]["message"]["content"]
 
+    async def analyze_resume(self, resume_text: str) -> ResumeAnalysis:
+        prompt = f"""Analyze this resume and extract structured profile data in JSON format.
+Resume:
+{resume_text[:6000]}
+
+Return JSON with fields:
+candidate_name (str or null), inferred_role (str), skills (list of str),
+projects (list of objects with: name, technologies, description),
+experiences (list of objects with: company, role, duration, highlights),
+suggested_topics (list of str)"""
+        raw = await self._call_groq(prompt)
+        return ResumeAnalysis(**json.loads(clean_json_text(raw)))
+
     async def generate_initial_question(
         self,
         role_title: str,
@@ -46,7 +59,7 @@ class GroqProvider(BaseLLMProvider):
         resume_text: Optional[str] = None,
         job_description: Optional[str] = None
     ) -> InterviewQuestion:
-        resume_context = f"\nCandidate Resume:\n{resume_text[:2500]}" if resume_text else ""
+        resume_context = f"\nCandidate Resume Highlights:\n{resume_text[:3000]}" if resume_text else ""
         job_context = f"\nTarget Job Description Requirements:\n{job_description[:2500]}" if job_description else ""
         prompt = f"""Generate the first question for a mock interview in JSON format.
 Target Role: {role_title}
@@ -56,8 +69,10 @@ Difficulty: {difficulty}
 {job_context}
 {resume_context}
 
+CRITICAL: If candidate resume is provided, your question MUST directly refer to a specific project, technology, or accomplishment stated in their resume.
+
 Return JSON with fields:
-question (str), category (str), difficulty (str), rationale (str), expected_concepts (list of str)"""
+question (str, referencing resume project if available), category (str), difficulty (str), rationale (str), expected_concepts (list of str), resume_context_used (str or null)"""
         raw = await self._call_groq(prompt)
         return InterviewQuestion(**json.loads(clean_json_text(raw)))
 
@@ -104,7 +119,7 @@ Evaluation: {evaluation.feedback}
 Reason: {evaluation.followup_reason or 'Probe trade-offs and edge cases'}
 
 Return JSON with fields:
-question (str), category (str), difficulty (str), rationale (str), expected_concepts (list of str)"""
+question (str), category (str), difficulty (str), rationale (str), expected_concepts (list of str), resume_context_used (str or null)"""
         raw = await self._call_groq(prompt)
         return InterviewQuestion(**json.loads(clean_json_text(raw)))
 
@@ -122,15 +137,18 @@ question (str), category (str), difficulty (str), rationale (str), expected_conc
     ) -> InterviewQuestion:
         history = [f"Q: {t.get('question_text')}" for t in previous_turns]
         job_context = f"\nJob Requirements:\n{job_description[:2000]}" if job_description else ""
+        resume_context = f"\nResume Highlights:\n{resume_text[:2500]}" if resume_text else ""
         prompt = f"""Generate question #{turn_number} of {total_questions} for a {role_title} ({experience_level}) interview.
 Mode: {interview_type}, Difficulty: {difficulty}
 {job_context}
+{resume_context}
 Previous questions:
 {chr(10).join(history)}
-{f'Resume: {resume_text[:2000]}' if resume_text else ''}
+
+If resume is provided, explore a different project or stated tool from their background.
 
 Return JSON with fields:
-question (str), category (str), difficulty (str), rationale (str), expected_concepts (list of str)"""
+question (str), category (str), difficulty (str), rationale (str), expected_concepts (list of str), resume_context_used (str or null)"""
         raw = await self._call_groq(prompt)
         return InterviewQuestion(**json.loads(clean_json_text(raw)))
 
@@ -149,9 +167,11 @@ question (str), category (str), difficulty (str), rationale (str), expected_conc
             history.append(f"Turn {idx}: Q: {t.get('question_text')} | Answer: {t.get('user_answer')} | Score: {t.get('turn_score')}")
 
         job_context = f"\nJob Context:\n{job_description[:2000]}" if job_description else ""
+        resume_context = f"\nResume Profile:\n{resume_text[:2000]}" if resume_text else ""
         prompt = f"""Generate final interview performance report for {role_title} ({experience_level}).
 Mode: {interview_type}, Difficulty: {difficulty}
 {job_context}
+{resume_context}
 Transcript:
 {chr(10).join(history)}
 

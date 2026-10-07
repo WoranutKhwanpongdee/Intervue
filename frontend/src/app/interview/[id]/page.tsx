@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, Send, CornerDownLeft, ChevronDown, ChevronUp, AlertCircle, LogOut } from "lucide-react";
+import { Clock, Send, CornerDownLeft, ChevronDown, ChevronUp, AlertCircle, LogOut, FileText, Sparkles } from "lucide-react";
 import { api } from "@/lib/api";
 import { InterviewSession, QuestionTurn } from "@/types/interview";
 import { Button } from "@/components/ui/Button";
@@ -185,12 +185,23 @@ export default function InterviewRoomPage({
 
         {/* Current Question Block */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-mono text-neutral-400 uppercase">
               {currentTurn.is_followup ? "Follow-up Probe" : `Question 0${currentTurn.turn_number}`}
             </span>
             <span>·</span>
             <span className="text-xs font-medium text-neutral-500">{currentTurn.question_category}</span>
+
+            {/* Resume Grounding Badge */}
+            {currentTurn.resume_context_used && (
+              <>
+                <span>·</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  <FileText className="h-3 w-3" />
+                  Grounded: {currentTurn.resume_context_used}
+                </span>
+              </>
+            )}
           </div>
 
           <h2 className="text-xl sm:text-2xl font-medium tracking-tight text-neutral-900 dark:text-neutral-50 leading-relaxed">
@@ -266,8 +277,13 @@ export default function InterviewRoomPage({
                       className="w-full p-4 text-left flex items-center justify-between gap-4 cursor-pointer"
                     >
                       <div className="space-y-0.5">
-                        <div className="text-xs font-mono text-neutral-400">
-                          Question 0{turn.turn_number} · {turn.question_category}
+                        <div className="flex items-center gap-2 text-xs font-mono text-neutral-400">
+                          <span>Question 0{turn.turn_number} · {turn.question_category}</span>
+                          {turn.resume_context_used && (
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                              · Grounded in {turn.resume_context_used}
+                            </span>
+                          )}
                         </div>
                         <div className="text-xs sm:text-sm font-medium text-neutral-900 dark:text-neutral-100 line-clamp-1">
                           {turn.question_text}

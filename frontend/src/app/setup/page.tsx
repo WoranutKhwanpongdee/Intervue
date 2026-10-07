@@ -2,13 +2,25 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, X, Upload, Target, Check } from "lucide-react";
+import {
+  AlertCircle,
+  X,
+  Upload,
+  Sparkles,
+  Briefcase,
+  Layers,
+  FolderGit2,
+  CheckCircle2,
+  ChevronRight,
+  FileText
+} from "lucide-react";
 import { api } from "@/lib/api";
 import {
   CreateInterviewPayload,
   Difficulty,
   ExperienceLevel,
   InterviewMode,
+  ResumeAnalysis,
 } from "@/types/interview";
 import { Button } from "@/components/ui/Button";
 
@@ -82,14 +94,16 @@ export default function SetupPage() {
   const [difficulty, setDifficulty] = useState<Difficulty>("Medium");
   const [numQuestions, setNumQuestions] = useState<number>(5);
 
-  // Job Description (especially for Job-specific mode)
+  // Job Description
   const [jobDescription, setJobDescription] = useState("");
 
   // Resume State
   const [resumeMode, setResumeMode] = useState<"none" | "upload" | "paste">("none");
   const [resumeText, setResumeText] = useState("");
   const [resumeFilename, setResumeFilename] = useState("");
+  const [resumeAnalysis, setResumeAnalysis] = useState<ResumeAnalysis | null>(null);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const [isAnalyzingText, setIsAnalyzingText] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -105,10 +119,52 @@ export default function SetupPage() {
       setResumeText(res.extracted_text);
       setResumeFilename(res.filename);
       setResumeMode("upload");
+      if (res.analysis) {
+        setResumeAnalysis(res.analysis);
+        if (res.analysis.inferred_role && !roleTitle) {
+          setRoleTitle(res.analysis.inferred_role);
+        }
+      }
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to process resume file.");
     } finally {
       setIsUploadingResume(false);
+    }
+  };
+
+  const handleAnalyzePastedText = async () => {
+    if (!resumeText.trim()) return;
+    setIsAnalyzingText(true);
+    setErrorMessage(null);
+    try {
+      const analysis = await api.analyzeResumeText(resumeText.trim());
+      setResumeAnalysis(analysis);
+      if (analysis.inferred_role) {
+        setRoleTitle(analysis.inferred_role);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to analyze resume text.");
+    } finally {
+      setIsAnalyzingText(false);
+    }
+  };
+
+  const applyInferredRole = () => {
+    if (!resumeAnalysis?.inferred_role) return;
+    const inferred = resumeAnalysis.inferred_role;
+    setRoleTitle(inferred);
+
+    const lower = inferred.toLowerCase();
+    if (lower.includes("lead") || lower.includes("staff")) {
+      setExperienceLevel("Lead");
+    } else if (lower.includes("principal") || lower.includes("director") || lower.includes("vp")) {
+      setExperienceLevel("Principal");
+    } else if (lower.includes("senior") || lower.includes("sr")) {
+      setExperienceLevel("Senior");
+    } else if (lower.includes("junior") || lower.includes("jr") || lower.includes("intern")) {
+      setExperienceLevel("Junior");
+    } else {
+      setExperienceLevel("Mid");
     }
   };
 
@@ -152,7 +208,7 @@ export default function SetupPage() {
             Configure Interview
           </h1>
           <p className="text-xs text-neutral-500 mt-1">
-            Select your interview mode, role, and evaluation criteria.
+            Upload your resume or configure manually to generate targeted questions.
           </p>
         </div>
 
@@ -167,6 +223,192 @@ export default function SetupPage() {
         )}
 
         <form onSubmit={handleCreateInterview} className="space-y-7">
+          {/* Section: Resume-Based Interview Upload & Analysis */}
+          <div className="p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/50 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-neutral-900 dark:text-neutral-100 flex items-center gap-1.5">
+                  <FileText className="h-3.5 w-3.5 text-neutral-500" />
+                  <span>Resume-Based Grounding</span>
+                </span>
+                <p className="text-[11px] text-neutral-500 mt-0.5">
+                  AI extracts your skills, projects & work history to ask authentic interview questions.
+                </p>
+              </div>
+
+              <div className="flex gap-1 bg-neutral-200/60 dark:bg-neutral-900 p-1 rounded-md text-xs">
+                <button
+                  type="button"
+                  onClick={() => setResumeMode(resumeMode === "upload" ? "none" : "upload")}
+                  className={`px-2.5 py-1 rounded cursor-pointer transition-colors ${
+                    resumeMode === "upload" ? "bg-white dark:bg-neutral-800 font-medium text-neutral-900 dark:text-neutral-100 shadow-sm" : "text-neutral-500 hover:text-neutral-700"
+                  }`}
+                >
+                  Upload File
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setResumeMode(resumeMode === "paste" ? "none" : "paste")}
+                  className={`px-2.5 py-1 rounded cursor-pointer transition-colors ${
+                    resumeMode === "paste" ? "bg-white dark:bg-neutral-800 font-medium text-neutral-900 dark:text-neutral-100 shadow-sm" : "text-neutral-500 hover:text-neutral-700"
+                  }`}
+                >
+                  Paste Text
+                </button>
+              </div>
+            </div>
+
+            {resumeMode === "upload" && (
+              <div className="border border-dashed border-neutral-300 dark:border-neutral-800 rounded-lg p-5 text-center bg-white dark:bg-neutral-900/40">
+                <input
+                  type="file"
+                  id="resume-file"
+                  accept=".pdf,.txt,.md"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  disabled={isUploadingResume}
+                />
+                <label
+                  htmlFor="resume-file"
+                  className="cursor-pointer flex flex-col items-center justify-center space-y-2"
+                >
+                  <Upload className="h-5 w-5 text-neutral-400" />
+                  <span className="text-xs text-neutral-800 dark:text-neutral-200 font-medium">
+                    {isUploadingResume
+                      ? "AI reading resume skills & projects..."
+                      : resumeFilename
+                      ? `Attached: ${resumeFilename}`
+                      : "Click to upload Resume (PDF / TXT)"}
+                  </span>
+                  <span className="text-[10px] text-neutral-400">PDF or TXT up to 10MB</span>
+                </label>
+              </div>
+            )}
+
+            {resumeMode === "paste" && (
+              <div className="space-y-2">
+                <textarea
+                  rows={4}
+                  value={resumeText}
+                  onChange={(e) => setResumeText(e.target.value)}
+                  placeholder="Paste your resume, skills, and past projects summary here..."
+                  className="w-full p-3 text-xs rounded-lg border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 font-mono"
+                />
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleAnalyzePastedText}
+                    disabled={isAnalyzingText || !resumeText.trim()}
+                    className="text-xs px-3 py-1.5 rounded bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 cursor-pointer disabled:opacity-50 flex items-center gap-1.5 font-medium"
+                  >
+                    {isAnalyzingText ? "Analyzing..." : "✨ Extract Skills & Projects"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Extracted Resume Intelligence Preview */}
+            {resumeAnalysis && (
+              <div className="mt-3 p-4 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 space-y-3.5">
+                <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <span className="text-xs font-semibold text-neutral-900 dark:text-neutral-100">
+                      Resume Analyzed: {resumeAnalysis.candidate_name || "Profile Grounded"}
+                    </span>
+                  </div>
+                  {resumeAnalysis.inferred_role && (
+                    <button
+                      type="button"
+                      onClick={applyInferredRole}
+                      className="text-[11px] font-mono px-2 py-0.5 rounded border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:border-black dark:hover:border-white transition-colors cursor-pointer"
+                    >
+                      Use Role: {resumeAnalysis.inferred_role}
+                    </button>
+                  )}
+                </div>
+
+                {/* Skills tags */}
+                {resumeAnalysis.skills?.length > 0 && (
+                  <div className="space-y-1.5">
+                    <span className="text-[11px] font-mono uppercase text-neutral-400 flex items-center gap-1">
+                      <Layers className="h-3 w-3" /> Extracted Skills ({resumeAnalysis.skills.length})
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {resumeAnalysis.skills.map((s, i) => (
+                        <span
+                          key={i}
+                          className="text-[11px] font-mono px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Projects */}
+                {resumeAnalysis.projects?.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] font-mono uppercase text-neutral-400 flex items-center gap-1">
+                      <FolderGit2 className="h-3 w-3" /> Key Projects ({resumeAnalysis.projects.length})
+                    </span>
+                    <div className="space-y-1.5">
+                      {resumeAnalysis.projects.map((p, idx) => (
+                        <div
+                          key={idx}
+                          className="p-2.5 rounded border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/50 dark:bg-neutral-950/50 text-xs space-y-1"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-neutral-900 dark:text-neutral-100">
+                              {p.name}
+                            </span>
+                            <div className="flex gap-1">
+                              {p.technologies?.slice(0, 3).map((t, ti) => (
+                                <span
+                                  key={ti}
+                                  className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-neutral-200/50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
+                                >
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          {p.description && (
+                            <p className="text-[11px] text-neutral-500 leading-snug line-clamp-2">
+                              {p.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Work Experience */}
+                {resumeAnalysis.experiences?.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] font-mono uppercase text-neutral-400 flex items-center gap-1">
+                      <Briefcase className="h-3 w-3" /> Experience ({resumeAnalysis.experiences.length})
+                    </span>
+                    <div className="space-y-1">
+                      {resumeAnalysis.experiences.map((exp, ei) => (
+                        <div key={ei} className="text-xs text-neutral-600 dark:text-neutral-400 flex items-baseline justify-between">
+                          <span className="font-medium text-neutral-800 dark:text-neutral-200">
+                            {exp.role} @ {exp.company}
+                          </span>
+                          {exp.duration && (
+                            <span className="text-[10px] font-mono text-neutral-400">{exp.duration}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Section 1: 🎯 Interview Mode */}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
@@ -239,7 +481,7 @@ export default function SetupPage() {
             </div>
           </div>
 
-          {/* Job-specific Description Field (Highlighted if Job-specific mode) */}
+          {/* Job-specific Description Field */}
           {(interviewMode === "Job-specific" || jobDescription) && (
             <div className="p-4 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50/60 dark:bg-neutral-950/60 space-y-2">
               <div className="flex items-center justify-between">
@@ -334,82 +576,10 @@ export default function SetupPage() {
             </div>
           </div>
 
-          {/* Section 5: Resume Upload */}
-          <div className="pt-2 border-t border-neutral-100 dark:border-neutral-900 space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-                  Resume Context (Optional)
-                </span>
-                <p className="text-[11px] text-neutral-500">
-                  Gounds interview questions in your real career accomplishments.
-                </p>
-              </div>
-
-              <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-900 p-1 rounded-md text-xs">
-                <button
-                  type="button"
-                  onClick={() => setResumeMode(resumeMode === "upload" ? "none" : "upload")}
-                  className={`px-2 py-0.5 rounded cursor-pointer ${
-                    resumeMode === "upload" ? "bg-white dark:bg-neutral-800 font-medium" : "text-neutral-500"
-                  }`}
-                >
-                  Upload File
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setResumeMode(resumeMode === "paste" ? "none" : "paste")}
-                  className={`px-2 py-0.5 rounded cursor-pointer ${
-                    resumeMode === "paste" ? "bg-white dark:bg-neutral-800 font-medium" : "text-neutral-500"
-                  }`}
-                >
-                  Paste Text
-                </button>
-              </div>
-            </div>
-
-            {resumeMode === "upload" && (
-              <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg p-5 text-center">
-                <input
-                  type="file"
-                  id="resume-file"
-                  accept=".pdf,.txt,.md"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  disabled={isUploadingResume}
-                />
-                <label
-                  htmlFor="resume-file"
-                  className="cursor-pointer flex flex-col items-center justify-center space-y-1.5"
-                >
-                  <Upload className="h-4 w-4 text-neutral-400" />
-                  <span className="text-xs text-neutral-700 dark:text-neutral-300 font-medium">
-                    {isUploadingResume
-                      ? "Extracting resume..."
-                      : resumeFilename
-                      ? `Attached: ${resumeFilename}`
-                      : "Upload PDF or TXT"}
-                  </span>
-                  <span className="text-[10px] text-neutral-400">PDF, TXT up to 10MB</span>
-                </label>
-              </div>
-            )}
-
-            {resumeMode === "paste" && (
-              <textarea
-                rows={4}
-                value={resumeText}
-                onChange={(e) => setResumeText(e.target.value)}
-                placeholder="Paste relevant resume experience here..."
-                className="w-full p-3 text-xs rounded-lg border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 font-mono"
-              />
-            )}
-          </div>
-
           {/* Action */}
           <div className="pt-4">
             <Button type="submit" size="lg" className="w-full" isLoading={isLoading}>
-              Start {interviewMode} Interview
+              Start {interviewMode} Interview {resumeAnalysis ? "· Grounded in Resume" : ""}
             </Button>
           </div>
         </form>

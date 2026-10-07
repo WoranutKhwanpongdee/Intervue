@@ -6,8 +6,9 @@ class InterviewQuestion(BaseModel):
     question: str = Field(description="The interview question text to ask the candidate")
     category: str = Field(description="Domain/category, e.g., System Design, Architecture, Problem Solving, Soft Skills")
     difficulty: str = Field(description="Difficulty level: Easy, Medium, or Hard")
-    rationale: str = Field(description="Why this question is relevant to the role and candidate level")
+    rationale: str = Field(description="Why this question is relevant to the role, resume projects, and candidate level")
     expected_concepts: List[str] = Field(default_factory=list, description="Key concepts or technical facets expected in an ideal answer")
+    resume_context_used: Optional[str] = Field(default=None, description="Specific project, skill, or experience from resume that inspired this question")
 
 
 class AnswerEvaluation(BaseModel):
@@ -22,6 +23,28 @@ class AnswerEvaluation(BaseModel):
     sample_ideal_answer: str = Field(description="Concise model answer demonstrating how a top candidate would answer")
     requires_followup: bool = Field(default=False, description="Whether candidate's answer left an important ambiguity or gap that warrants a targeted follow-up")
     followup_reason: Optional[str] = Field(default=None, description="Reason why follow-up is warranted if any")
+
+
+class ResumeProject(BaseModel):
+    name: str = Field(description="Project name or key initiative")
+    technologies: List[str] = Field(default_factory=list, description="Tech stack and tools used")
+    description: str = Field(description="Summary of project impact and architecture")
+
+
+class ResumeExperience(BaseModel):
+    company: str = Field(description="Company or organization name")
+    role: str = Field(description="Position or job title")
+    duration: Optional[str] = Field(default=None, description="Time period or years")
+    highlights: List[str] = Field(default_factory=list, description="Key technical accomplishments")
+
+
+class ResumeAnalysis(BaseModel):
+    candidate_name: Optional[str] = Field(default=None, description="Candidate name")
+    inferred_role: Optional[str] = Field(default=None, description="Inferred role title and level")
+    skills: List[str] = Field(default_factory=list, description="List of technical skills, languages, and frameworks")
+    projects: List[ResumeProject] = Field(default_factory=list, description="Key projects parsed from resume")
+    experiences: List[ResumeExperience] = Field(default_factory=list, description="Work experiences parsed from resume")
+    suggested_topics: List[str] = Field(default_factory=list, description="Recommended interview topics tailored to this resume")
 
 
 class FinalInterviewReport(BaseModel):

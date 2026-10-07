@@ -217,8 +217,13 @@ export default function FinalReportPage({
                     className="w-full p-4 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-900/40"
                   >
                     <div className="space-y-0.5">
-                      <div className="text-xs font-mono text-neutral-400">
-                        Q{idx + 1} · {turn.question_category}
+                      <div className="flex items-center gap-2 text-xs font-mono text-neutral-400">
+                        <span>Q{idx + 1} · {turn.question_category}</span>
+                        {turn.resume_context_used && (
+                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                            · Grounded in {turn.resume_context_used}
+                          </span>
+                        )}
                       </div>
                       <div className="text-xs sm:text-sm font-medium text-neutral-900 dark:text-neutral-100 line-clamp-1">
                         {turn.question_text}
@@ -239,6 +244,12 @@ export default function FinalReportPage({
 
                   {isExpanded && (
                     <div className="p-4 pt-0 border-t border-neutral-100 dark:border-neutral-900 space-y-4 mt-3">
+                      {turn.resume_context_used && (
+                        <div className="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 w-fit">
+                          Grounded in: {turn.resume_context_used}
+                        </div>
+                      )}
+
                       <div className="space-y-1">
                         <span className="text-[11px] font-mono text-neutral-400 uppercase">Question</span>
                         <p className="text-xs text-neutral-900 dark:text-neutral-100 font-medium">

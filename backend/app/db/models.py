@@ -55,6 +55,7 @@ class QuestionTurn(Base):
     question_category = Column(String(100), nullable=False, default="General")
     difficulty = Column(String(50), nullable=False, default="Medium")
     expected_points = Column(JSON, nullable=True, default=list)
+    resume_context_used = Column(Text, nullable=True)
 
     user_answer = Column(Text, nullable=True)
     answered_at = Column(DateTime, nullable=True)
