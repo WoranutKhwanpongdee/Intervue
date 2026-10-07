@@ -15,9 +15,17 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Async-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-neutral?style=flat)](LICENSE)
 
-<br />
-
-[Overview](#overview) • [Core Features](#core-features) • [Interview Workflow](#interview-workflow) • [Hidden Weakness Engine](#hidden-weakness-engine) • [Quickstart](#quickstart) • [Architecture](#architecture) • [API Reference](#api-reference)
+<table align="center">
+  <tr>
+    <td align="center"><a href="#overview"><b>&nbsp;Overview&nbsp;</b></a></td>
+    <td align="center"><a href="#interview-workflow"><b>&nbsp;Workflow&nbsp;</b></a></td>
+    <td align="center"><a href="#core-features"><b>&nbsp;Core Features&nbsp;</b></a></td>
+    <td align="center"><a href="#hidden-weakness-engine"><b>&nbsp;Hidden Weaknesses&nbsp;</b></a></td>
+    <td align="center"><a href="#quickstart"><b>&nbsp;Quickstart&nbsp;</b></a></td>
+    <td align="center"><a href="#architecture"><b>&nbsp;Architecture&nbsp;</b></a></td>
+    <td align="center"><a href="#api-reference"><b>&nbsp;API Docs&nbsp;</b></a></td>
+  </tr>
+</table>
 
 </div>
 
