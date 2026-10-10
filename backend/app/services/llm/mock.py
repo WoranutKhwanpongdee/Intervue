@@ -314,6 +314,7 @@ class MockProvider(BaseLLMProvider):
         # Check if candidate dropped buzzwords without sufficient depth or reasoning
         bluff_detected = False
         probing_rationale = None
+        requires_followup = False
         if detected_buzzwords and not is_followup:
             has_depth_indicators = any(term in lower_ans for term in ["chunk", "partition", "ttl", "metric", "latency", "scale", "qps", "lock", "tradeoff", "why", "because", "bench"])
             if not has_depth_indicators or word_count < 45:
@@ -669,3 +670,7 @@ class MockProvider(BaseLLMProvider):
             recommended_topics=recommended_topics,
             closing_advice=closing_advice
         )
+
+
+MockLLMProvider = MockProvider
+

@@ -60,6 +60,27 @@ class TurnEvaluationResponse(BaseModel):
     is_completed: bool = False
 
 
+class WorkflowStatusResponse(BaseModel):
+    session_id: str
+    current_state: str
+    current_round_stage: Optional[str] = None
+    status: str
+    active_topic: Optional[str] = None
+    covered_topics: List[str] = []
+    retry_count: int = 0
+    total_turns: int = 0
+    answered_turns: int = 0
+    is_completed: bool = False
+
+
+class ResumeSessionResponse(BaseModel):
+    session_id: str
+    current_state: str
+    is_completed: bool
+    message: str
+    active_turn: Optional[QuestionTurnResponse] = None
+
+
 class InterviewSessionSummary(BaseModel):
     id: str
     role_title: str
@@ -68,6 +89,8 @@ class InterviewSessionSummary(BaseModel):
     difficulty: str
     num_questions: int
     status: str
+    current_state: Optional[str] = "INITIALIZING"
+    current_round_stage: Optional[str] = None
     overall_score: Optional[float] = None
     readiness_level: Optional[str] = None
     created_at: datetime
@@ -89,6 +112,8 @@ class InterviewSessionDetail(BaseModel):
     resume_text: Optional[str] = None
     job_description: Optional[str] = None
     status: str
+    current_state: Optional[str] = "INITIALIZING"
+    current_round_stage: Optional[str] = None
     overall_score: Optional[float] = None
     readiness_level: Optional[str] = None
     summary: Optional[str] = None
@@ -114,3 +139,4 @@ class ResumeParseResponse(BaseModel):
     extracted_text: str
     char_count: int
     analysis: Optional[ResumeAnalysis] = None
+

@@ -21,6 +21,9 @@ class InterviewSession(Base):
     resume_text = Column(Text, nullable=True)
     job_description = Column(Text, nullable=True)
     status = Column(String(50), default="in_progress", nullable=False)  # in_progress, completed, abandoned
+    current_state = Column(String(50), default="INITIALIZING", nullable=False)
+    current_round_stage = Column(String(100), nullable=True)
+    workflow_context = Column(JSON, nullable=True, default=dict)
     
     # Final evaluation fields
     overall_score = Column(Float, nullable=True)

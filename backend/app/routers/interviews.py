@@ -150,6 +150,80 @@ async def finish_interview_early(
         raise HTTPException(status_code=500, detail=f"Failed to conclude interview: {str(e)}")
 
 
+@router.post("/{session_id}/resume", response_model=ResumeSessionResponse)
+async def resume_interview_session(
+    session_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """Rehydrate and resume an existing interview session from its persistent state."""
+    try:
+        engine = InterviewEngine(db)
+        result = await engine.resume_session(session_id)
+        active_turn = result.get("active_turn")
+        return ResumeSessionResponse(
+            session_id=session_id,
+            current_state=result.get("current_state", "INITIALIZING"),
+            is_completed=result.get("is_completed", False),
+            message=result.get("message", "Session resumed"),
+            active_turn=QuestionTurnResponse.model_validate(active_turn) if active_turn else None
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
+    except Exception as e:
+        logger.error(f"Error resuming interview session: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to resume interview session: {str(e)}")
+
+
+@router.post("/{session_id}/recover", response_model=InterviewSessionDetail)
+async def recover_interview_session(
+    session_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """Recover an interview session back to its last stable checkpoint."""
+    try:
+        engine = InterviewEngine(db)
+        session = await engine.recover_session(session_id)
+        return session
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
+    except Exception as e:
+        logger.error(f"Error recovering interview session: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to recover interview session: {str(e)}")
+
+
+@router.get("/{session_id}/workflow", response_model=WorkflowStatusResponse)
+async def get_interview_workflow_status(
+    session_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """Inspect current workflow state machine status, active topic, and transition metrics."""
+    stmt = (
+        select(InterviewSession)
+        .where(InterviewSession.id == session_id)
+        .options(selectinload(InterviewSession.turns))
+    )
+    res = await db.execute(stmt)
+    session = res.scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="Interview session not found")
+
+    ctx = session.workflow_context or {}
+    answered = len([t for t in session.turns if t.user_answer is not None])
+
+    return WorkflowStatusResponse(
+        session_id=session.id,
+        current_state=session.current_state or "INITIALIZING",
+        current_round_stage=session.current_round_stage,
+        status=session.status,
+        active_topic=ctx.get("active_topic"),
+        covered_topics=ctx.get("covered_topics", []),
+        retry_count=ctx.get("retry_count", 0),
+        total_turns=len(session.turns),
+        answered_turns=answered,
+        is_completed=(session.status == "completed" or session.current_state == "COMPLETED")
+    )
+
+
 @router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_interview(
     session_id: str,
@@ -165,3 +239,4 @@ async def delete_interview(
     await db.delete(session)
     await db.commit()
     return None
+
