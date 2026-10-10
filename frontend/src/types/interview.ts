@@ -10,6 +10,14 @@ export interface HiddenWeakness {
   coaching_tip: string;
 }
 
+export interface SkillAssessment {
+  category: string;
+  score?: number | null;
+  status: 'Mastered' | 'Competent' | 'Needs Practice' | 'Insufficient Data';
+  observations: string;
+  confidence: 'High' | 'Medium' | 'Insufficient';
+}
+
 export interface ResumeProject {
   name: string;
   technologies: string[];
@@ -75,6 +83,7 @@ export interface InterviewSession {
   strengths: string[];
   weaknesses: string[];
   hidden_weaknesses?: HiddenWeakness[];
+  skill_map?: SkillAssessment[];
   recommended_topics: string[];
   closing_advice?: string | null;
   created_at: string;

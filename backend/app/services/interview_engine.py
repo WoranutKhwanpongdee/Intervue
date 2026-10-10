@@ -234,6 +234,7 @@ class InterviewEngine:
         session.strengths = report.strengths
         session.weaknesses = report.weaknesses
         session.hidden_weaknesses = [hw.model_dump() if hasattr(hw, 'model_dump') else hw for hw in report.hidden_weaknesses]
+        session.skill_map = [sm.model_dump() if hasattr(sm, 'model_dump') else sm for sm in report.skill_map]
         session.recommended_topics = report.recommended_topics
         session.closing_advice = report.closing_advice
 

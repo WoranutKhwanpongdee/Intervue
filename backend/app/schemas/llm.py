@@ -56,6 +56,14 @@ class ResumeAnalysis(BaseModel):
     suggested_topics: List[str] = Field(default_factory=list, description="Recommended interview topics tailored to this resume")
 
 
+class SkillAssessment(BaseModel):
+    category: str = Field(description="Skill domain or topic name, e.g., 'Python', 'API Design & Idempotency', 'Database & Caching', 'Problem Solving', 'Communication & Structure'")
+    score: Optional[float] = Field(default=None, description="Assessed score 0-100 if sufficient evidence, or null if insufficient data")
+    status: str = Field(description="Evaluation status: 'Mastered' (>=85), 'Competent' (70-84), 'Needs Practice' (<70), or 'Insufficient Data'")
+    observations: str = Field(description="Specific feedback and evidence observed across candidate answers for this skill")
+    confidence: str = Field(description="Confidence level: 'High' (tested across multiple turns), 'Medium' (tested in 1 turn), 'Insufficient' (not covered or too brief)")
+
+
 class FinalInterviewReport(BaseModel):
     overall_score: float = Field(ge=0, le=100, description="Overall weighted score 0 to 100")
     readiness_level: str = Field(description="Rating: 'Needs Practice', 'Approaching Ready', 'Interview Ready', or 'Strong Hire'")
@@ -63,5 +71,6 @@ class FinalInterviewReport(BaseModel):
     strengths: List[str] = Field(default_factory=list, description="Top candidate strengths demonstrated across turns")
     weaknesses: List[str] = Field(default_factory=list, description="Primary weaknesses or gaps to address")
     hidden_weaknesses: List[HiddenWeakness] = Field(default_factory=list, description="Latent behavioral and communication blindspots detected across candidate responses")
+    skill_map: List[SkillAssessment] = Field(default_factory=list, description="Topic-by-topic skill competency map with scores or insufficient data flags")
     recommended_topics: List[str] = Field(default_factory=list, description="Specific topics or technologies to study next")
     closing_advice: str = Field(description="Practical, encouraging next steps for real-world interviews")

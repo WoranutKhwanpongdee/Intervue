@@ -294,13 +294,10 @@ Full Interview Transcript & Scores:
 {chr(10).join(turns_summary)}
 
 CRITICAL COACHING TASK:
-Identify 2-3 HIDDEN WEAKNESSES / BLINDSPOTS across the entire session:
-Look beyond basic technical correctness. Spot subtle communication and thinking habits:
-- 'What vs Why Bias' (Explaining what a technology does rather than why it was chosen)
-- 'Lacks Concrete Examples' (Knows theoretical concepts but omits real-world examples, metrics, or architecture war stories)
-- 'Follow-up Degradation' (Strong initial answers but becomes less specific or defensive during deep-dive follow-ups)
-- 'Happy Path Assumption' (Overlooking failure modes, partial network partitions, timeouts, and degradation)
-- 'Over-Engineering' (Proposing massive distributed tools where simple designs suffice)
+1. Identify 2-3 HIDDEN WEAKNESSES / BLINDSPOTS across the entire session (What vs Why Bias, Lacks Concrete Examples, Follow-up Degradation, Happy Path Assumption, Over-Engineering).
+2. Generate INTERVIEW SKILL MAP: Break down performance into 4-6 distinct skill pillars relevant to the role (e.g. Core Languages/Frameworks, API Design & Idempotency, Database & Caching, Problem Solving / Concurrency, Communication & Structure).
+   - For tested topics: provide score (0-100), status ('Mastered', 'Competent', 'Needs Practice'), observations, and confidence ('High' or 'Medium').
+   - For 1-2 important role topics NOT tested or lacking data: set score to null, status to 'Insufficient Data', confidence to 'Insufficient', and note what was missing.
 
 Return JSON:
 {{
@@ -315,6 +312,22 @@ Return JSON:
       "insight": "⚠️ You tend to describe what a technology does rather than explaining why you chose it over alternatives.",
       "evidence": "When asked about caching in Q2, you defined Redis operations without comparing memory overhead against in-memory LRU or explaining cache invalidation trade-offs.",
       "coaching_tip": "In real interviews, use the 'Why-First' rule: always name the trade-off or alternative you rejected before describing the tool."
+    }}
+  ],
+  "skill_map": [
+    {{
+      "category": "API Architecture & Idempotency",
+      "score": 88.0,
+      "status": "Mastered",
+      "observations": "Clear explanation of idempotency keys, outbox pattern, and distributed state boundaries.",
+      "confidence": "High"
+    }},
+    {{
+      "category": "Distributed Tracing & SRE",
+      "score": null,
+      "status": "Insufficient Data",
+      "observations": "Observability and distributed tracing (e.g. OpenTelemetry) were not probed in this session.",
+      "confidence": "Insufficient"
     }}
   ],
   "recommended_topics": ["topic/framework/concept 1", "topic 2", "topic 3"],

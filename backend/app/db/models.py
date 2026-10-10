@@ -29,6 +29,7 @@ class InterviewSession(Base):
     strengths = Column(JSON, nullable=True, default=list)
     weaknesses = Column(JSON, nullable=True, default=list)
     hidden_weaknesses = Column(JSON, nullable=True, default=list)
+    skill_map = Column(JSON, nullable=True, default=list)
     recommended_topics = Column(JSON, nullable=True, default=list)
     closing_advice = Column(Text, nullable=True)
 

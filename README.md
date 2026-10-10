@@ -19,8 +19,8 @@
   <tr>
     <td align="center"><a href="#overview"><b>&nbsp;Overview&nbsp;</b></a></td>
     <td align="center"><a href="#live-session-preview"><b>&nbsp;Live Simulation&nbsp;</b></a></td>
-    <td align="center"><a href="#comparison"><b>&nbsp;Comparison&nbsp;</b></a></td>
     <td align="center"><a href="#core-features"><b>&nbsp;Core Features&nbsp;</b></a></td>
+    <td align="center"><a href="#interview-skill-map"><b>&nbsp;Skill Map&nbsp;</b></a></td>
     <td align="center"><a href="#hidden-weakness-engine"><b>&nbsp;Hidden Weaknesses&nbsp;</b></a></td>
     <td align="center"><a href="#quickstart"><b>&nbsp;Quickstart&nbsp;</b></a></td>
     <td align="center"><a href="#architecture"><b>&nbsp;Architecture&nbsp;</b></a></td>
@@ -127,6 +127,34 @@ Upload your real resume (**PDF / TXT**) or paste your work history:
   - **High Performance (>80%)**: The engine dynamically escalates to distributed race conditions, cache stampedes, and failover edge cases.
   - **Foundational Gaps (<60%)**: Calibrates to practical fundamentals without condescension or repeating failed prompts.
 - **Follow-up Probe Injection**: Automatically triggers targeted deep dives when candidate answers leave important ambiguities.
+
+---
+
+## Interview Skill Map
+
+> *"Know exactly where your blindspots are—not just an opaque aggregate number."*
+
+Rather than reducing a senior engineer's capabilities into a single generic score, Intervue maps out your performance across specific engineering domains and explicitly flags areas where insufficient evidence was collected:
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  🗺️ GRANULAR COMPETENCY BREAKDOWN & DATA GAP AUDIT                                               │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  🟢 Core Architecture & Data Invariants     [92%]  Mastered    · Strict idempotency & lock leases│
+│  🟢 API Design & Error Semantics            [88%]  Mastered    · Robust RFC 7807 & status codes  │
+│  🔵 Database & Caching Topology             [82%]  Competent   · Solid Redis LRU & indexing      │
+│  🟡 Concurrency & Race Conditions           [58%]  Needs Focus · Omitted CAS check under churn   │
+│  ⚪ Distributed Telemetry & SRE             [ -- ] Data Gap    · ⚠️ Insufficient data to evaluate │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+| Domain Category | Status | Evaluation Criteria & AI Diagnosis | Confidence |
+|---|:---:|---|:---:|
+| **Language Core & Architecture** | 🟢 **Mastered** | Proactively addresses data invariants, memory footprints, and architectural trade-offs. | High |
+| **API & Distributed Systems** | 🟢 **Mastered** | Implements idempotency keys, transactional outboxes, and graceful retry backoffs. | High |
+| **Database & Caching** | 🔵 **Competent** | Correctly chooses isolation levels, replication topologies, and cache invalidation. | Medium |
+| **Concurrency & Edge Cases** | 🟡 **Needs Practice** | Struggles with distributed race conditions or split-brain partition recovery. | High |
+| **Unassessed Domain** | ⚪ **Insufficient Data** | *Not enough questions or candidate evidence was gathered during this session.* | Insufficient |
 
 ---
 

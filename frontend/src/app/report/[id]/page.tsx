@@ -13,10 +13,16 @@ import {
   Compass,
   Sparkles,
   FileText,
-  ShieldAlert
+  ShieldAlert,
+  BarChart3,
+  Layers,
+  CheckCircle2,
+  HelpCircle,
+  TrendingUp,
+  AlertCircle
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { InterviewSession } from "@/types/interview";
+import { InterviewSession, SkillAssessment } from "@/types/interview";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { MetricCard } from "@/components/ui/MetricCard";
@@ -34,6 +40,7 @@ export default function FinalReportPage({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedTurns, setExpandedTurns] = useState<Record<string, boolean>>({});
+  const [skillFilter, setSkillFilter] = useState<"all" | "evaluated" | "insufficient">("all");
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -60,7 +67,7 @@ export default function FinalReportPage({
   if (isLoading) {
     return (
       <div className="flex h-[70vh] items-center justify-center bg-white dark:bg-black">
-        <p className="text-xs font-mono text-neutral-500">Compiling evaluation report...</p>
+        <p className="text-xs font-mono text-neutral-500">Compiling evaluation report & skill map...</p>
       </div>
     );
   }
@@ -91,6 +98,25 @@ export default function FinalReportPage({
     session.overall_score !== null && session.overall_score !== undefined
       ? Math.round(session.overall_score)
       : Math.round(avgTech * 0.4 + avgRel * 0.25 + avgClar * 0.15 + avgComp * 0.2);
+
+  // Skill Map Analytics
+  const skillMap = session.skill_map || [];
+  const evaluatedSkills = skillMap.filter((s) => s.status !== "Insufficient Data" && s.score !== null);
+  const insufficientSkills = skillMap.filter((s) => s.status === "Insufficient Data" || s.score === null);
+
+  const filteredSkills = skillMap.filter((s) => {
+    if (skillFilter === "evaluated") return s.status !== "Insufficient Data" && s.score !== null;
+    if (skillFilter === "insufficient") return s.status === "Insufficient Data" || s.score === null;
+    return true;
+  });
+
+  const topSkill = evaluatedSkills.length > 0
+    ? [...evaluatedSkills].sort((a, b) => (b.score || 0) - (a.score || 0))[0]
+    : null;
+
+  const lowestSkill = evaluatedSkills.length > 0
+    ? [...evaluatedSkills].sort((a, b) => (a.score || 0) - (b.score || 0))[0]
+    : null;
 
   return (
     <div className="min-h-screen bg-white dark:bg-black py-12 text-neutral-900 dark:text-neutral-100">
@@ -155,6 +181,160 @@ export default function FinalReportPage({
             <MetricCard label="Depth" score={avgComp} subtitle="Edge cases" />
           </div>
         </div>
+
+        {/* 🗺️ INTERVIEW SKILL MAP SECTION */}
+        {skillMap.length > 0 && (
+          <div className="space-y-4 pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-xs font-mono uppercase tracking-wider text-neutral-900 dark:text-neutral-100 flex items-center gap-1.5 font-semibold">
+                  <BarChart3 className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+                  <span>Interview Skill Map</span>
+                </h3>
+                <p className="text-[11px] text-neutral-500 mt-0.5">
+                  Granular competency breakdown by topic, language, and architectural domain.
+                </p>
+              </div>
+
+              {/* Filter Tabs */}
+              <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-900 p-1 rounded-md text-xs self-start sm:self-auto font-mono">
+                <button
+                  type="button"
+                  onClick={() => setSkillFilter("all")}
+                  className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                    skillFilter === "all" ? "bg-white dark:bg-neutral-800 font-medium text-neutral-900 dark:text-neutral-100 shadow-sm" : "text-neutral-500 hover:text-neutral-700"
+                  }`}
+                >
+                  All ({skillMap.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSkillFilter("evaluated")}
+                  className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                    skillFilter === "evaluated" ? "bg-white dark:bg-neutral-800 font-medium text-neutral-900 dark:text-neutral-100 shadow-sm" : "text-neutral-500 hover:text-neutral-700"
+                  }`}
+                >
+                  Evaluated ({evaluatedSkills.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSkillFilter("insufficient")}
+                  className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                    skillFilter === "insufficient" ? "bg-white dark:bg-neutral-800 font-medium text-neutral-900 dark:text-neutral-100 shadow-sm" : "text-neutral-500 hover:text-neutral-700"
+                  }`}
+                >
+                  Data Gap ({insufficientSkills.length})
+                </button>
+              </div>
+            </div>
+
+            {/* Top Strengths / Opportunities Banner */}
+            {topSkill && lowestSkill && topSkill !== lowestSkill && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg border border-emerald-200/80 dark:border-emerald-900/60 bg-emerald-50/40 dark:bg-emerald-950/20 text-xs">
+                  <div className="flex items-center justify-between text-emerald-800 dark:text-emerald-300 font-semibold mb-1">
+                    <span className="flex items-center gap-1.5">
+                      <TrendingUp className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                      Highest Competency
+                    </span>
+                    <span className="font-mono">{Math.round(topSkill.score || 0)}%</span>
+                  </div>
+                  <p className="text-neutral-700 dark:text-neutral-300 font-medium">{topSkill.category}</p>
+                </div>
+
+                <div className="p-3 rounded-lg border border-amber-200/80 dark:border-amber-900/60 bg-amber-50/40 dark:bg-amber-950/20 text-xs">
+                  <div className="flex items-center justify-between text-amber-800 dark:text-amber-300 font-semibold mb-1">
+                    <span className="flex items-center gap-1.5">
+                      <AlertCircle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                      Prime Growth Area
+                    </span>
+                    <span className="font-mono">{Math.round(lowestSkill.score || 0)}%</span>
+                  </div>
+                  <p className="text-neutral-700 dark:text-neutral-300 font-medium">{lowestSkill.category}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Skill Cards Grid */}
+            <div className="space-y-3">
+              {filteredSkills.map((skill, idx) => {
+                const isInsufficient = skill.status === "Insufficient Data" || skill.score === null;
+                const score = skill.score || 0;
+
+                let statusBadgeVariant = "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400";
+                let barColor = "bg-neutral-400 dark:bg-neutral-600";
+
+                if (skill.status === "Mastered") {
+                  statusBadgeVariant = "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800";
+                  barColor = "bg-emerald-500 dark:bg-emerald-400";
+                } else if (skill.status === "Competent") {
+                  statusBadgeVariant = "bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800";
+                  barColor = "bg-sky-500 dark:bg-sky-400";
+                } else if (skill.status === "Needs Practice") {
+                  statusBadgeVariant = "bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800";
+                  barColor = "bg-amber-500 dark:bg-amber-400";
+                } else if (isInsufficient) {
+                  statusBadgeVariant = "bg-neutral-100 dark:bg-neutral-900 text-neutral-500 border-neutral-300 dark:border-neutral-800 border-dashed";
+                }
+
+                return (
+                  <div
+                    key={idx}
+                    className={`p-4 rounded-xl border text-xs space-y-2.5 transition-colors ${
+                      isInsufficient
+                        ? "border-dashed border-neutral-300 dark:border-neutral-800 bg-neutral-50/40 dark:bg-neutral-950/30 opacity-90"
+                        : "border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <span className="font-semibold text-neutral-900 dark:text-neutral-100 text-xs sm:text-sm">
+                          {skill.category}
+                        </span>
+                        <div className="text-[11px] font-mono text-neutral-400">
+                          Confidence: {skill.confidence || (isInsufficient ? "Insufficient" : "Medium")}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        {!isInsufficient && (
+                          <span className="font-mono font-bold text-neutral-900 dark:text-neutral-100 text-xs sm:text-sm">
+                            {Math.round(score)}%
+                          </span>
+                        )}
+                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${statusBadgeVariant}`}>
+                          {skill.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar (if evaluated) */}
+                    {!isInsufficient ? (
+                      <div className="w-full bg-neutral-100 dark:bg-neutral-900 h-1.5 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+                          style={{ width: `${Math.min(Math.max(score, 5), 100)}%` }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="p-2 rounded bg-neutral-100/70 dark:bg-neutral-900/60 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
+                        <HelpCircle className="h-3.5 w-3.5 text-neutral-400 shrink-0" />
+                        <span>Not enough data from this session to evaluate accurately.</span>
+                      </div>
+                    )}
+
+                    {/* Specific Observations */}
+                    {skill.observations && (
+                      <p className="text-[11px] text-neutral-600 dark:text-neutral-400 leading-relaxed font-sans pt-0.5">
+                        {skill.observations}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ⚠️ Hidden Weakness & Blindspot Detection Section */}
         {session.hidden_weaknesses && session.hidden_weaknesses.length > 0 && (
@@ -356,7 +536,7 @@ export default function FinalReportPage({
 
                       {turn.latent_blindspot && (
                         <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 text-xs text-amber-900 dark:text-amber-200 font-sans">
-                          <span className="font-semibold text-[11px] font-mono block uppercase text-amber-700 dark:text-amber-400 mb-1">
+                          <span className="font-semibold text-[11px] font-mono block uppercase text-amber-700 dark:text-amber-400 mb-0.5">
                             Coach Blindspot Note:
                           </span>
                           {turn.latent_blindspot}

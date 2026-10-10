@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from app.schemas.llm import AnswerEvaluation, FinalInterviewReport, ResumeAnalysis, HiddenWeakness
+from app.schemas.llm import AnswerEvaluation, FinalInterviewReport, ResumeAnalysis, HiddenWeakness, SkillAssessment
 
 
 class CreateInterviewRequest(BaseModel):
@@ -90,6 +90,7 @@ class InterviewSessionDetail(BaseModel):
     strengths: List[str] = []
     weaknesses: List[str] = []
     hidden_weaknesses: List[HiddenWeakness] = []
+    skill_map: List[SkillAssessment] = []
     recommended_topics: List[str] = []
     closing_advice: Optional[str] = None
     created_at: datetime

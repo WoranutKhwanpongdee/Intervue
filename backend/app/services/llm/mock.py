@@ -9,7 +9,8 @@ from app.schemas.llm import (
     ResumeAnalysis,
     ResumeProject,
     ResumeExperience,
-    HiddenWeakness
+    HiddenWeakness,
+    SkillAssessment
 )
 from app.services.llm.base import BaseLLMProvider
 
@@ -456,6 +457,52 @@ class MockProvider(BaseLLMProvider):
             )
         ]
 
+        # Skill-by-skill competency map
+        skill_map = [
+            SkillAssessment(
+                category="Core Architecture & Syntax",
+                score=min(round(avg_score + 4, 1), 96.0),
+                status="Mastered" if avg_score >= 80 else "Competent",
+                observations=f"Solid grasp of fundamental design patterns and language invariants appropriate for a {experience_level} engineer.",
+                confidence="High"
+            ),
+            SkillAssessment(
+                category="API Design & Idempotency",
+                score=min(round(avg_score - 2, 1), 92.0),
+                status="Competent" if avg_score >= 70 else "Needs Practice",
+                observations="Good conceptual handling of request lifecycles; could be more explicit regarding token lease timeouts and replay attacks.",
+                confidence="High"
+            ),
+            SkillAssessment(
+                category="Database & Caching Strategies",
+                score=min(round(avg_score - 6, 1), 90.0),
+                status="Competent" if avg_score >= 76 else "Needs Practice",
+                observations="Familiar with Redis/SQL caching layers, but occasionally overlooks cache stampede mitigation and replica sync lag.",
+                confidence="Medium"
+            ),
+            SkillAssessment(
+                category="Problem Solving & Concurrency",
+                score=min(round(avg_score + 1, 1), 95.0),
+                status="Mastered" if avg_score >= 82 else "Competent",
+                observations="Able to reason through multithreaded edge cases and deadlocks under probing.",
+                confidence="Medium"
+            ),
+            SkillAssessment(
+                category="Communication & Conviction",
+                score=min(round(avg_score + 5, 1), 98.0),
+                status="Mastered" if avg_score >= 78 else "Competent",
+                observations="Structured articulation with clear terminology; benefited from pausing to organize thoughts before answering.",
+                confidence="High"
+            ),
+            SkillAssessment(
+                category="Distributed Telemetry & SRE",
+                score=None,
+                status="Insufficient Data",
+                observations="OpenTelemetry, distributed tracing, and Prometheus metric alerts were not explicitly probed during this session.",
+                confidence="Insufficient"
+            )
+        ]
+
         recommended_topics = [
             "System Design & Distributed Data Patterns (Saga, Outbox, CDC)",
             "Performance Profiling, Bottleneck Analysis, and Benchmarking",
@@ -470,6 +517,7 @@ class MockProvider(BaseLLMProvider):
             strengths=strengths,
             weaknesses=weaknesses,
             hidden_weaknesses=hidden_weaknesses,
+            skill_map=skill_map,
             recommended_topics=recommended_topics,
             closing_advice=closing_advice
         )
