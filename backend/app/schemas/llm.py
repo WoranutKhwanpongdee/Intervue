@@ -25,6 +25,17 @@ class AnswerEvaluation(BaseModel):
     latent_blindspot: Optional[str] = Field(default=None, description="Perceptive coaching insight on invisible communication/cognitive pattern in this turn")
     requires_followup: bool = Field(default=False, description="Whether candidate's answer left an important ambiguity or gap that warrants a targeted follow-up")
     followup_reason: Optional[str] = Field(default=None, description="Reason why follow-up is warranted if any")
+    bluff_detected: bool = Field(default=False, description="Whether candidate dropped heavy buzzwords/tools without concrete mechanics, reasoning, or trade-offs")
+    buzzwords_detected: List[str] = Field(default_factory=list, description="List of technical buzzwords/tools dropped superficially (e.g. ['RAG', 'Vector Database', 'Kafka'])")
+    probing_rationale: Optional[str] = Field(default=None, description="Respectful coaching rationale for why depth probing is needed to verify genuine understanding")
+
+
+class DepthAuditItem(BaseModel):
+    topic: str = Field(description="The technical concept or buzzword mentioned (e.g. 'RAG Architecture', 'Kafka Partitioning', 'Distributed Mutex')")
+    candidate_claim: str = Field(description="Summary of how candidate introduced or referenced the concept")
+    verification_status: str = Field(description="'Verified Depth' (backed by solid mechanics & trade-offs) or 'Superficial / Probe Triggered' (lacked operational parameters or depth)")
+    probe_question: Optional[str] = Field(default=None, description="The targeted follow-up probe asked to test deep comprehension")
+    coach_observation: str = Field(description="Insight on candidate's true depth vs buzzword usage, delivered respectfully")
 
 
 class HiddenWeakness(BaseModel):
@@ -72,5 +83,6 @@ class FinalInterviewReport(BaseModel):
     weaknesses: List[str] = Field(default_factory=list, description="Primary weaknesses or gaps to address")
     hidden_weaknesses: List[HiddenWeakness] = Field(default_factory=list, description="Latent behavioral and communication blindspots detected across candidate responses")
     skill_map: List[SkillAssessment] = Field(default_factory=list, description="Topic-by-topic skill competency map with scores or insufficient data flags")
+    depth_audit: List[DepthAuditItem] = Field(default_factory=list, description="Authenticity and depth audit on key concepts/buzzwords used by candidate")
     recommended_topics: List[str] = Field(default_factory=list, description="Specific topics or technologies to study next")
     closing_advice: str = Field(description="Practical, encouraging next steps for real-world interviews")

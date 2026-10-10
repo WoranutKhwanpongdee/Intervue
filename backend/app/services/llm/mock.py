@@ -10,7 +10,8 @@ from app.schemas.llm import (
     ResumeProject,
     ResumeExperience,
     HiddenWeakness,
-    SkillAssessment
+    SkillAssessment,
+    DepthAuditItem
 )
 from app.services.llm.base import BaseLLMProvider
 
@@ -294,13 +295,35 @@ class MockProvider(BaseLLMProvider):
             f"and continuously verifying behavior with comprehensive telemetry."
         )
 
-        requires_followup = not is_followup and (word_count >= 25) and (turn_number < total_questions) and (random.random() > 0.4)
+        # Bluff & Superficial Buzzword Detection
+        buzzword_dictionary = [
+            "rag", "vector", "kafka", "redis", "microservices", "microservice",
+            "event-driven", "circuit breaker", "graphql", "kubernetes", "k8s",
+            "docker", "jwt", "oauth", "grpc", "cqrs", "sharding", "nosql",
+            "outbox", "ebpf", "raft", "elasticsearch"
+        ]
+        lower_ans = user_answer.lower()
+        detected_buzzwords = [bw.upper() for bw in buzzword_dictionary if re.search(r'\b' + bw + r'\b', lower_ans)]
+
+        # Check if candidate dropped buzzwords without sufficient depth or reasoning
+        bluff_detected = False
+        probing_rationale = None
+        if detected_buzzwords and not is_followup:
+            has_depth_indicators = any(term in lower_ans for term in ["chunk", "partition", "ttl", "metric", "latency", "scale", "qps", "lock", "tradeoff", "why", "because", "bench"])
+            if not has_depth_indicators or word_count < 45:
+                bluff_detected = True
+                probing_rationale = f"Candidate referenced {', '.join(detected_buzzwords)} without detailing chunking/partitioning strategies, trade-offs, or production metrics."
+                requires_followup = True
+        elif not is_followup and (word_count >= 25) and (turn_number < total_questions) and (random.random() > 0.4):
+            requires_followup = True
 
         # Micro latent blindspot detection for this turn
         latent_blindspot = None
-        if word_count < 30:
+        if bluff_detected:
+            latent_blindspot = f"⚠️ You referenced {', '.join(detected_buzzwords)}, but your answer stayed high-level without explaining internal mechanics, data invariants, or evaluation criteria."
+        elif word_count < 30:
             latent_blindspot = "⚠️ You know the concept, but your answer lacks concrete production examples or metrics."
-        elif "why" not in user_answer.lower() and "because" not in user_answer.lower() and "trade" not in user_answer.lower():
+        elif "why" not in lower_ans and "because" not in lower_ans and "trade" not in lower_ans:
             latent_blindspot = "⚠️ You tend to describe what a technology does rather than explaining why you chose it."
         elif is_followup:
             latent_blindspot = "⚠️ Your initial answers are strong, but you become less specific when asked follow-up questions."
@@ -317,7 +340,10 @@ class MockProvider(BaseLLMProvider):
             sample_ideal_answer=sample_answer,
             latent_blindspot=latent_blindspot,
             requires_followup=requires_followup,
-            followup_reason="Candidate mentioned high-level approach; probe deeper on edge case handling and scaling limits." if requires_followup else None
+            followup_reason=probing_rationale or ("Candidate mentioned high-level approach; probe deeper on edge case handling and scaling limits." if requires_followup else None),
+            bluff_detected=bluff_detected,
+            buzzwords_detected=detected_buzzwords,
+            probing_rationale=probing_rationale
         )
 
     async def generate_followup_question(
@@ -329,7 +355,52 @@ class MockProvider(BaseLLMProvider):
         evaluation: AnswerEvaluation,
         difficulty: str
     ) -> InterviewQuestion:
-        # Extract keywords from answer to reference adaptively
+        # If bluff detector was triggered, craft a surgical depth probe!
+        if evaluation.bluff_detected and evaluation.buzzwords_detected:
+            bws = [bw.lower() for bw in evaluation.buzzwords_detected]
+            if any(b in bws for b in ["rag", "vector"]):
+                return InterviewQuestion(
+                    question="You mentioned implementing a RAG pipeline. In production, retrieval precision and hallucination prevention are critical. How did you design your chunking strategy, choose your embedding dimensions, and evaluate retrieval faithfulness (e.g. using RAGAS or precision@k)?",
+                    category="Depth Probe: RAG & Retrieval Internals",
+                    difficulty=difficulty,
+                    rationale="Validates genuine hands-on RAG experience by probing chunking boundaries, embedding trade-offs, and retrieval evaluation metrics.",
+                    expected_concepts=["Chunking strategies (semantic vs fixed)", "Embedding dimensions & cosine distance", "Hybrid search (BM25 + dense)", "Evaluation metrics (Faithfulness / RAGAS)"],
+                    resume_context_used=None,
+                    adaptive_context="🔍 Depth Probe (Bluff Detector): Probing chunking, hybrid retrieval, and RAG evaluation metrics"
+                )
+            elif any(b in bws for b in ["kafka", "event-driven"]):
+                return InterviewQuestion(
+                    question="You highlighted using Kafka and event-driven pipelines. When scaling consumers under heavy load, how do you handle partition rebalancing without consumer lag spikes, and how do you guarantee idempotent message delivery?",
+                    category="Depth Probe: Event-Driven & Messaging",
+                    difficulty=difficulty,
+                    rationale="Tests authentic messaging depth around consumer group rebalancing, offset commits, and deduplication.",
+                    expected_concepts=["Consumer group rebalance protocol", "Transactional outbox", "Offset commit intervals", "Dead-letter queues"],
+                    resume_context_used=None,
+                    adaptive_context="🔍 Depth Probe (Bluff Detector): Probing Kafka partition rebalancing & consumer lag"
+                )
+            elif "redis" in bws:
+                return InterviewQuestion(
+                    question="You brought up Redis caching. When caching critical data with distributed locks, how do you handle lock lease expiration during unexpected garbage collection pauses to prevent split-brain double writes?",
+                    category="Depth Probe: Distributed Invariants",
+                    difficulty=difficulty,
+                    rationale="Checks whether candidate understands Redlock safety caveats and GC pause clock drift.",
+                    expected_concepts=["Lock lease expiry / TTL", "Fencing tokens", "GC pause clock drift", "Cache stampede lock lease"],
+                    resume_context_used=None,
+                    adaptive_context="🔍 Depth Probe (Bluff Detector): Probing Redis lock lease expiration & split-brain prevention"
+                )
+            else:
+                bw_name = evaluation.buzzwords_detected[0]
+                return InterviewQuestion(
+                    question=f"You mentioned utilizing {bw_name}. Could you walk me through the internal mechanics, concrete failure scenarios you planned for, and how you measured its production impact?",
+                    category=f"Depth Probe: {bw_name} Architecture",
+                    difficulty=difficulty,
+                    rationale=f"Validates authentic mastery of {bw_name} mechanics and trade-offs.",
+                    expected_concepts=["Internal architecture mechanics", "Operational failure modes", "Production telemetry & metrics"],
+                    resume_context_used=None,
+                    adaptive_context=f"🔍 Depth Probe (Bluff Detector): Probing operational mechanics & metrics for {bw_name}"
+                )
+
+        # Standard adaptive follow-up
         words = [w.strip(".,;:()\"'") for w in user_answer.split() if len(w) > 4]
         key_term = words[0] if words else "your described architecture"
         return InterviewQuestion(
@@ -503,6 +574,30 @@ class MockProvider(BaseLLMProvider):
             )
         ]
 
+        depth_audit = [
+            DepthAuditItem(
+                topic="RAG & Vector Search Pipeline",
+                candidate_claim="Referenced building Retrieval-Augmented Generation (RAG) pipelines for semantic query answering.",
+                verification_status="Verified Depth",
+                probe_question="How did you design chunking boundaries, embedding dimensions, and evaluate retrieval faithfulness?",
+                coach_observation="Candidate demonstrated genuine mastery by discussing hybrid BM25 + dense search and RAGAS precision metrics under follow-up probing."
+            ),
+            DepthAuditItem(
+                topic="Distributed Mutex & Redis Caching",
+                candidate_claim="Proposed Redis distributed locks for idempotent transaction management.",
+                verification_status="Superficial / Probe Triggered",
+                probe_question="How do you guarantee lock lease expiry doesn't cause split-brain updates during network partitions?",
+                coach_observation="Initial answer lacked lock TTL lease parameters and fencing tokens; follow-up probe helped candidate clarify race boundaries."
+            ),
+            DepthAuditItem(
+                topic="Event Streaming & Kafka Partitioning",
+                candidate_claim="Mentioned Kafka event brokers for decoupling microservices.",
+                verification_status="Verified Depth",
+                probe_question="How do you handle partition rebalancing without consumer lag spikes?",
+                coach_observation="Articulated sound understanding of consumer group offsets, transactional outbox pattern, and idempotent consumer workers."
+            )
+        ]
+
         recommended_topics = [
             "System Design & Distributed Data Patterns (Saga, Outbox, CDC)",
             "Performance Profiling, Bottleneck Analysis, and Benchmarking",
@@ -518,6 +613,7 @@ class MockProvider(BaseLLMProvider):
             weaknesses=weaknesses,
             hidden_weaknesses=hidden_weaknesses,
             skill_map=skill_map,
+            depth_audit=depth_audit,
             recommended_topics=recommended_topics,
             closing_advice=closing_advice
         )

@@ -18,6 +18,14 @@ export interface SkillAssessment {
   confidence: 'High' | 'Medium' | 'Insufficient';
 }
 
+export interface DepthAuditItem {
+  topic: string;
+  candidate_claim: string;
+  verification_status: 'Verified Depth' | 'Superficial / Probe Triggered';
+  probe_question?: string | null;
+  coach_observation: string;
+}
+
 export interface ResumeProject {
   name: string;
   technologies: string[];
@@ -64,6 +72,9 @@ export interface QuestionTurn {
   areas_for_improvement: string[];
   sample_ideal_answer?: string | null;
   latent_blindspot?: string | null;
+  bluff_detected?: boolean;
+  buzzwords_detected?: string[];
+  probing_rationale?: string | null;
   created_at: string;
 }
 
@@ -84,6 +95,7 @@ export interface InterviewSession {
   weaknesses: string[];
   hidden_weaknesses?: HiddenWeakness[];
   skill_map?: SkillAssessment[];
+  depth_audit?: DepthAuditItem[];
   recommended_topics: string[];
   closing_advice?: string | null;
   created_at: string;
@@ -131,6 +143,9 @@ export interface TurnEvaluationResult {
     latent_blindspot?: string | null;
     requires_followup: boolean;
     followup_reason?: string | null;
+    bluff_detected?: boolean;
+    buzzwords_detected?: string[];
+    probing_rationale?: string | null;
   };
   turn: QuestionTurn;
   next_question?: QuestionTurn | null;

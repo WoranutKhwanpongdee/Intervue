@@ -19,7 +19,8 @@ import {
   CheckCircle2,
   HelpCircle,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Search
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { InterviewSession, SkillAssessment } from "@/types/interview";
@@ -388,6 +389,83 @@ export default function FinalReportPage({
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* 🔍 Interview Bluff Detector · Depth & Authenticity Audit */}
+        {session.depth_audit && session.depth_audit.length > 0 && (
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-mono uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 font-semibold">
+                  <Search className="h-4 w-4 text-indigo-500" />
+                  <span>Interview Bluff Detector · Depth & Authenticity Audit</span>
+                </h3>
+                <p className="text-[11px] text-neutral-500 mt-0.5">
+                  Probing operational understanding behind claimed technologies & architectures—validating genuine depth without hostility.
+                </p>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                Authenticity Matrix
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {session.depth_audit.map((item, idx) => {
+                const isVerified = item.verification_status === "Verified Depth";
+                return (
+                  <div
+                    key={idx}
+                    className={`p-4 rounded-xl border space-y-2.5 text-xs transition-colors ${
+                      isVerified
+                        ? "border-emerald-200/80 dark:border-emerald-900/60 bg-emerald-50/30 dark:bg-emerald-950/20"
+                        : "border-amber-200/80 dark:border-amber-900/60 bg-amber-50/30 dark:bg-amber-950/20"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-0.5">
+                        <span className="font-semibold text-neutral-900 dark:text-neutral-100 text-xs sm:text-sm">
+                          {item.topic}
+                        </span>
+                        <p className="text-[11px] text-neutral-500 font-sans">
+                          {item.candidate_claim}
+                        </p>
+                      </div>
+                      <span
+                        className={`text-[10px] font-mono px-2 py-0.5 rounded border shrink-0 ${
+                          isVerified
+                            ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800"
+                            : "bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800"
+                        }`}
+                      >
+                        {isVerified ? "✓ Verified Depth" : "⚡ Probe Triggered"}
+                      </span>
+                    </div>
+
+                    {item.probe_question && (
+                      <div className="p-3 rounded-lg bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 font-sans space-y-1">
+                        <span className="text-[10px] font-mono uppercase text-neutral-400 block tracking-wider">
+                          Targeted Depth Probe Asked:
+                        </span>
+                        <p className="text-xs text-neutral-800 dark:text-neutral-200 italic">
+                          &ldquo;{item.probe_question}&rdquo;
+                        </p>
+                      </div>
+                    )}
+
+                    {item.coach_observation && (
+                      <div className="text-[11px] font-sans leading-relaxed text-neutral-700 dark:text-neutral-300 pt-0.5 flex items-start gap-1.5">
+                        <span className="font-mono text-neutral-400 shrink-0">💡</span>
+                        <span>
+                          <strong className="font-medium text-neutral-900 dark:text-neutral-100">Coach Assessment: </strong>
+                          {item.coach_observation}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

@@ -111,6 +111,9 @@ class InterviewEngine:
         current_turn.areas_for_improvement = evaluation.areas_for_improvement
         current_turn.sample_ideal_answer = evaluation.sample_ideal_answer
         current_turn.latent_blindspot = evaluation.latent_blindspot
+        current_turn.bluff_detected = evaluation.bluff_detected
+        current_turn.buzzwords_detected = evaluation.buzzwords_detected
+        current_turn.probing_rationale = evaluation.probing_rationale
 
         # Count how many core (non-followup) questions have been answered
         core_answered_count = len([t for t in session.turns if not t.is_followup and t.user_answer is not None])
@@ -120,9 +123,10 @@ class InterviewEngine:
         is_completed = False
 
         # Adaptive logic:
-        # If evaluation suggests follow-up and the current turn wasn't already a follow-up,
+        # If evaluation suggests follow-up (or bluff/buzzwords detected) and the current turn wasn't already a follow-up,
         # generate a contextual follow-up question.
-        if evaluation.requires_followup and not current_turn.is_followup and core_answered_count <= total_core_needed:
+        should_followup = (evaluation.requires_followup or evaluation.bluff_detected) and not current_turn.is_followup and core_answered_count <= total_core_needed
+        if should_followup:
             followup_q = await self.provider.generate_followup_question(
                 role_title=session.role_title,
                 experience_level=session.experience_level,
@@ -131,6 +135,8 @@ class InterviewEngine:
                 evaluation=evaluation,
                 difficulty=session.difficulty
             )
+            
+            probe_note = f"🔍 Depth Probe ({', '.join(evaluation.buzzwords_detected)}): {evaluation.probing_rationale}" if evaluation.bluff_detected and evaluation.buzzwords_detected else (evaluation.followup_reason or "Drilling deeper into trade-offs")
             next_turn = QuestionTurn(
                 session_id=session.id,
                 turn_number=len(session.turns) + 1,
@@ -141,7 +147,7 @@ class InterviewEngine:
                 difficulty=followup_q.difficulty,
                 expected_points=followup_q.expected_concepts,
                 resume_context_used=followup_q.resume_context_used,
-                adaptive_context=followup_q.adaptive_context or f"Follow-up probe on response to Q{current_turn.turn_number}: {evaluation.followup_reason or 'Drilling deeper into trade-offs'}"
+                adaptive_context=followup_q.adaptive_context or probe_note
             )
             self.db.add(next_turn)
         elif core_answered_count < total_core_needed:
@@ -235,6 +241,7 @@ class InterviewEngine:
         session.weaknesses = report.weaknesses
         session.hidden_weaknesses = [hw.model_dump() if hasattr(hw, 'model_dump') else hw for hw in report.hidden_weaknesses]
         session.skill_map = [sm.model_dump() if hasattr(sm, 'model_dump') else sm for sm in report.skill_map]
+        session.depth_audit = [da.model_dump() if hasattr(da, 'model_dump') else da for da in report.depth_audit]
         session.recommended_topics = report.recommended_topics
         session.closing_advice = report.closing_advice
 

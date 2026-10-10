@@ -30,6 +30,7 @@ class InterviewSession(Base):
     weaknesses = Column(JSON, nullable=True, default=list)
     hidden_weaknesses = Column(JSON, nullable=True, default=list)
     skill_map = Column(JSON, nullable=True, default=list)
+    depth_audit = Column(JSON, nullable=True, default=list)
     recommended_topics = Column(JSON, nullable=True, default=list)
     closing_advice = Column(Text, nullable=True)
 
@@ -75,6 +76,9 @@ class QuestionTurn(Base):
     areas_for_improvement = Column(JSON, nullable=True, default=list)
     sample_ideal_answer = Column(Text, nullable=True)
     latent_blindspot = Column(Text, nullable=True)
+    bluff_detected = Column(Boolean, default=False, nullable=True)
+    buzzwords_detected = Column(JSON, nullable=True, default=list)
+    probing_rationale = Column(Text, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

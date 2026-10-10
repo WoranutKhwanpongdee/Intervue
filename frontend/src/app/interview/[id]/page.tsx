@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, Send, CornerDownLeft, ChevronDown, ChevronUp, AlertCircle, LogOut, FileText, Sparkles } from "lucide-react";
+import { Clock, Send, CornerDownLeft, ChevronDown, ChevronUp, AlertCircle, LogOut, FileText, Sparkles, Search } from "lucide-react";
 import { api } from "@/lib/api";
 import { InterviewSession, QuestionTurn } from "@/types/interview";
 import { Button } from "@/components/ui/Button";
@@ -211,8 +211,16 @@ export default function InterviewRoomPage({
             {currentTurn.adaptive_context && (
               <>
                 <span>·</span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                  <Sparkles className="h-3 w-3 text-amber-500" />
+                <span className={`inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded border ${
+                  currentTurn.adaptive_context.includes("Depth Probe")
+                    ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800"
+                    : "bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800"
+                }`}>
+                  {currentTurn.adaptive_context.includes("Depth Probe") ? (
+                    <Search className="h-3 w-3 text-indigo-500 animate-pulse" />
+                  ) : (
+                    <Sparkles className="h-3 w-3 text-amber-500" />
+                  )}
                   {currentTurn.adaptive_context}
                 </span>
               </>
@@ -225,7 +233,9 @@ export default function InterviewRoomPage({
 
           {currentTurn.is_followup && (
             <p className="text-xs text-neutral-500 border-l-2 border-neutral-400 pl-3 py-0.5">
-              Targeted follow-up: The interviewer is exploring trade-offs or edge cases from your previous response.
+              {currentTurn.adaptive_context?.includes("Depth Probe")
+                ? "🔍 Depth Probe: The interviewer is verifying practical architecture, operational parameters, and metrics behind the technologies you mentioned."
+                : "Targeted follow-up: The interviewer is exploring trade-offs or edge cases from your previous response."}
             </p>
           )}
 
@@ -357,6 +367,38 @@ export default function InterviewRoomPage({
                               Coach Blindspot Note:
                             </span>
                             {turn.latent_blindspot}
+                          </div>
+                        )}
+
+                        {(turn.bluff_detected || (turn.buzzwords_detected && turn.buzzwords_detected.length > 0)) && (
+                          <div className="p-3 rounded-lg bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900/50 space-y-1.5 text-xs font-sans">
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold text-[11px] font-mono flex items-center gap-1.5 uppercase text-indigo-700 dark:text-indigo-400">
+                                <Search className="h-3 w-3" />
+                                Bluff Detector · Depth Probe Triggered
+                              </span>
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-300">
+                                Authenticity Check
+                              </span>
+                            </div>
+                            {turn.buzzwords_detected && turn.buzzwords_detected.length > 0 && (
+                              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                                <span className="text-[10px] font-mono text-neutral-400">Detected Buzzwords:</span>
+                                {turn.buzzwords_detected.map((bw, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-white dark:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
+                                  >
+                                    {bw}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {turn.probing_rationale && (
+                              <p className="text-[11px] text-indigo-950 dark:text-indigo-200 leading-relaxed pt-0.5">
+                                {turn.probing_rationale}
+                              </p>
+                            )}
                           </div>
                         )}
 

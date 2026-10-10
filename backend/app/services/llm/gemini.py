@@ -145,6 +145,10 @@ Set requires_followup to true only if the candidate answered partially or mentio
 HIDDEN BLINDSPOT COACHING DIAGNOSIS:
 Diagnose any latent communication or technical presentation blindspot in this specific response (e.g. 'You know the concept, but your answer lacks concrete production numbers or examples', 'You focused on what the tool does rather than explaining why you chose it over alternatives', or 'You became evasive on edge cases').
 
+INTERVIEW BLUFF DETECTOR:
+Detect if the candidate dropped high-level buzzwords, technologies, or architectures (e.g. RAG, Vector DB, Kafka, Redis Mutex, Event-Driven, Microservices, eBPF) WITHOUT explaining mechanics, metrics, or trade-offs.
+If buzzwords were dropped superficially, set bluff_detected=true, list the buzzwords in buzzwords_detected, and articulate probing_rationale (respectfully explaining what depth is missing and should be probed).
+
 Return a valid JSON object matching this schema:
 {{
   "technical_score": float (0-100),
@@ -158,7 +162,10 @@ Return a valid JSON object matching this schema:
   "sample_ideal_answer": "string (model answer illustrating ideal response)",
   "latent_blindspot": "string or null (perceptive coach diagnosis of unstated communication weakness)",
   "requires_followup": boolean,
-  "followup_reason": "string or null"
+  "followup_reason": "string or null",
+  "bluff_detected": boolean,
+  "buzzwords_detected": ["buzzword 1", "buzzword 2"],
+  "probing_rationale": "string or null (respectful rationale for depth follow-up)"
 }}"""
         raw = await self._call_gemini(prompt)
         cleaned = clean_json_text(raw)
@@ -174,12 +181,18 @@ Return a valid JSON object matching this schema:
         evaluation: AnswerEvaluation,
         difficulty: str
     ) -> InterviewQuestion:
-        prompt = f"""The candidate answered a question, but there is a nuance, edge case, or trade-off worth drilling deeper into.
+        prompt = f"""The candidate answered a question, and we need to evaluate conceptual depth or drill into a nuance/trade-off.
 Role: {role_title} ({experience_level})
 Original Question: {parent_question}
 Candidate's Previous Answer: {user_answer}
 Evaluation Feedback: {evaluation.feedback}
-Follow-up Intent: {evaluation.followup_reason or 'Probe trade-offs, scalability, or alternative approaches'}
+Follow-up Intent: {evaluation.probing_rationale if evaluation.bluff_detected and evaluation.probing_rationale else (evaluation.followup_reason or 'Probe trade-offs, scalability, or alternative approaches')}
+Buzzwords Detected (if any): {json.dumps(evaluation.buzzwords_detected or [])}
+
+DEPTH PROBING INSTRUCTION:
+If candidate dropped high-level buzzwords/technologies (e.g. RAG, Kafka, Redis Mutex, Vector DB, Microservices) without explaining internal mechanics or metrics:
+Ask a respectful, surgical question testing authentic mastery (e.g. chunking boundaries, retrieval evaluation metrics, lock TTL leases, partition rebalancing, network split-brain).
+Never sound accusatory; sound like a curious Principal Architect verifying real-world experience.
 
 Generate a sharp, realistic follow-up question that directly tests the candidate on what they said.
 Return JSON:
@@ -298,6 +311,9 @@ CRITICAL COACHING TASK:
 2. Generate INTERVIEW SKILL MAP: Break down performance into 4-6 distinct skill pillars relevant to the role (e.g. Core Languages/Frameworks, API Design & Idempotency, Database & Caching, Problem Solving / Concurrency, Communication & Structure).
    - For tested topics: provide score (0-100), status ('Mastered', 'Competent', 'Needs Practice'), observations, and confidence ('High' or 'Medium').
    - For 1-2 important role topics NOT tested or lacking data: set score to null, status to 'Insufficient Data', confidence to 'Insufficient', and note what was missing.
+3. Generate DEPTH & AUTHENTICITY AUDIT (Bluff Detector):
+   - Evaluate 2-4 key technical architectures, frameworks, or buzzwords the candidate mentioned (e.g. RAG, Redis Distributed Mutex, Kafka, CQRS, GraphQL, Microservices).
+   - Indicate whether they demonstrated "Verified Depth" or "Superficial / Probe Triggered", mention any probe question asked, and give a respectful coach observation on their actual depth.
 
 Return JSON:
 {{
@@ -328,6 +344,15 @@ Return JSON:
       "status": "Insufficient Data",
       "observations": "Observability and distributed tracing (e.g. OpenTelemetry) were not probed in this session.",
       "confidence": "Insufficient"
+    }}
+  ],
+  "depth_audit": [
+    {{
+      "topic": "RAG & Vector Retrieval Architecture",
+      "candidate_claim": "Claimed production experience building RAG pipelines for semantic document search.",
+      "verification_status": "Verified Depth",
+      "probe_question": "How did you design chunking boundaries and measure retrieval faithfulness?",
+      "coach_observation": "Demonstrated authentic mastery by articulating hybrid BM25 + dense vector reranking and RAGAS evaluation."
     }}
   ],
   "recommended_topics": ["topic/framework/concept 1", "topic 2", "topic 3"],

@@ -112,28 +112,28 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="space-y-2">
               <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-                1. Contextual Follow-ups
+                1. Contextual Follow-ups & Bluff Detector
               </h3>
               <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                Intervue analyzes the specific technologies and trade-offs you mention. It doesn&apos;t move on until you defend your architecture.
+                Mentioning buzzwords like RAG or Kafka? Intervue detects superficial claims and respectfully probes chunking, lock leases, and evaluation metrics to verify genuine depth.
               </p>
             </div>
 
             <div className="space-y-2">
               <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-                2. Four-Dimensional Rubric
+                2. Hidden Weakness Diagnosis
               </h3>
               <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                Answers are evaluated on Technical Accuracy, Relevance, Communication Clarity, and Completeness—the exact dimensions used in real interviews.
+                Diagnoses latent communication blindspots (e.g. What vs Why bias, lacking concrete numbers, or evasiveness on edge cases) with actionable senior coaching rules.
               </p>
             </div>
 
             <div className="space-y-2">
               <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-                3. Grounded in Your Resume
+                3. Topic Skill Map & Resume Grounding
               </h3>
               <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                Optionally upload a PDF resume. The interviewer extracts your real stack and projects to construct realistic interview scenarios.
+                Decomposes performance into granular domain competencies while flagging unassessed topics as Insufficient Data—grounded strictly in your PDF resume.
               </p>
             </div>
           </div>

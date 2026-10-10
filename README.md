@@ -20,11 +20,11 @@
     <td align="center"><a href="#overview"><b>&nbsp;Overview&nbsp;</b></a></td>
     <td align="center"><a href="#live-session-preview"><b>&nbsp;Live Simulation&nbsp;</b></a></td>
     <td align="center"><a href="#core-features"><b>&nbsp;Core Features&nbsp;</b></a></td>
+    <td align="center"><a href="#interview-bluff-detector"><b>&nbsp;Bluff Detector&nbsp;</b></a></td>
     <td align="center"><a href="#interview-skill-map"><b>&nbsp;Skill Map&nbsp;</b></a></td>
     <td align="center"><a href="#hidden-weakness-engine"><b>&nbsp;Hidden Weaknesses&nbsp;</b></a></td>
     <td align="center"><a href="#quickstart"><b>&nbsp;Quickstart&nbsp;</b></a></td>
     <td align="center"><a href="#architecture"><b>&nbsp;Architecture&nbsp;</b></a></td>
-    <td align="center"><a href="#api-reference"><b>&nbsp;API Docs&nbsp;</b></a></td>
   </tr>
 </table>
 
@@ -127,6 +127,39 @@ Upload your real resume (**PDF / TXT**) or paste your work history:
   - **High Performance (>80%)**: The engine dynamically escalates to distributed race conditions, cache stampedes, and failover edge cases.
   - **Foundational Gaps (<60%)**: Calibrates to practical fundamentals without condescension or repeating failed prompts.
 - **Follow-up Probe Injection**: Automatically triggers targeted deep dives when candidate answers leave important ambiguities.
+
+---
+
+## Interview Bluff Detector
+
+> *"Validating genuine operational depth vs. superficial buzzword dropping—with senior respect, never hostility."*
+
+Senior interviewers don't just check if you know buzzwords like **RAG**, **Kafka**, **Redis Distributed Mutex**, or **Microservices**. They probe the invisible mechanics, parameter tuning, failure modes, and metrics that prove hands-on mastery.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  🔍 INTERVIEW BLUFF DETECTOR · REAL-TIME DEPTH PROBE ACTIVATION                                             │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  Candidate Answer: "In our project, we implemented a RAG pipeline with a vector database to search docs."    │
+│                                                                                                             │
+│  ⚠️ Superficial Buzzwords Flagged: [RAG] [Vector Database]                                                  │
+│  💡 Coaching Diagnosis: Stated high-level tooling without explaining chunking boundaries, hybrid retrieval, │
+│     or evaluation metrics (e.g. RAGAS / precision@k).                                                        │
+│                                                                                                             │
+│  ---------------------------------------------------------------------------------------------------------  │
+│  🎯 SURGICAL DEPTH PROBE TRIGGERED:                                                                         │
+│  "You mentioned building a RAG pipeline. In production, retrieval precision and hallucination prevention     │
+│   are critical. How did you design your chunking strategy, choose your embedding dimensions, and evaluate   │
+│   retrieval faithfulness in production?"                                                                    │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+| Claimed Buzzword / Tech | Detected Gap | Depth Probe Angle | Verified Mastery Criteria |
+|---|---|---|---|
+| **RAG & Vector Search** | Stating "we used vector DB" without mechanics | Chunking strategy, hybrid BM25 + dense rerank | Metric-backed evaluation (e.g. RAGAS, context precision) |
+| **Redis Distributed Lock** | Defining lock without failure recovery | Lock lease expiry (TTL) during long GC pauses | Fencing tokens, clock drift, and Redlock invariant safety |
+| **Kafka & Event-Driven** | Dropping "event-driven" without scale | Partition rebalancing, consumer lag spikes | Offset commits, Transactional Outbox, idempotency |
+| **Microservices & CQRS** | Premature distributed complexity | High cross-service latency, eventual consistency | Outbox pattern, Saga orchestrator, fallback protocols |
 
 ---
 
