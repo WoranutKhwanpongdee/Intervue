@@ -68,6 +68,12 @@ class QuestionTurn(Base):
     round_stage = Column(String(100), nullable=True)
     interviewer_persona = Column(String(100), nullable=True)
 
+    # Question Quality Control (QC)
+    qc_quality_score = Column(Float, nullable=True)
+    qc_clarity_score = Column(Float, nullable=True)
+    skills_covered = Column(JSON, nullable=True, default=list)
+    qc_audit_passed = Column(Boolean, default=True, nullable=True)
+
     user_answer = Column(Text, nullable=True)
     answered_at = Column(DateTime, nullable=True)
 

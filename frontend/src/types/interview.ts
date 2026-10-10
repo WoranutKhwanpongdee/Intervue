@@ -85,6 +85,10 @@ export interface QuestionTurn {
   probing_rationale?: string | null;
   round_stage?: string | null;
   interviewer_persona?: string | null;
+  qc_quality_score?: number | null;
+  qc_clarity_score?: number | null;
+  skills_covered?: string[];
+  qc_audit_passed?: boolean;
   created_at: string;
 }
 

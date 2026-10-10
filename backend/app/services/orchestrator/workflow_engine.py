@@ -19,6 +19,8 @@ from app.services.orchestrator.state_machine import (
     WorkflowContext,
 )
 from app.services.orchestrator.retry_handler import AsyncRetryHandler, RetryPolicy
+from app.services.qc.qc_pipeline import QuestionQualityControlPipeline
+from app.services.qc.skill_coverage_tracker import SkillCoverageTracker
 
 logger = logging.getLogger("intervue.orchestrator.engine")
 
@@ -147,6 +149,17 @@ class InterviewWorkflowOrchestrator:
             fallback_func=fallback_q
         )
 
+        # Apply Question Quality Control (QC) & Validation
+        target_skills = SkillCoverageTracker.extract_target_skills(req.resume_text, req.job_description)
+        initial_q, qc_audit = QuestionQualityControlPipeline.audit_and_refine(
+            question=initial_q,
+            previous_questions=[],
+            target_skills=target_skills,
+            accumulated_skills=[],
+            base_difficulty=req.difficulty,
+            experience_level=req.experience_level
+        )
+
         # Step 4: Record First Turn & Await Answer
         first_turn = QuestionTurn(
             session_id=session.id,
@@ -159,16 +172,20 @@ class InterviewWorkflowOrchestrator:
             resume_context_used=initial_q.resume_context_used,
             adaptive_context=initial_q.adaptive_context,
             round_stage=initial_q.round_stage or sm.context.current_round_stage,
-            interviewer_persona=initial_q.interviewer_persona or sm.context.current_persona
+            interviewer_persona=initial_q.interviewer_persona or sm.context.current_persona,
+            qc_quality_score=qc_audit.overall_quality_score,
+            qc_clarity_score=qc_audit.clarity_score,
+            skills_covered=qc_audit.target_skills_covered,
+            qc_audit_passed=qc_audit.is_valid
         )
         self.db.add(first_turn)
 
         sm.context.active_topic = initial_q.category
-        sm.context.covered_topics.append(initial_q.category)
+        sm.context.covered_topics.extend(qc_audit.target_skills_covered or [initial_q.category])
         sm.transition_to(
             InterviewState.AWAITING_ANSWER,
             trigger=TransitionTrigger.AWAIT_INPUT,
-            details="Question ready. Waiting for candidate submission."
+            details="Question ready and QC verified. Waiting for candidate submission."
         )
 
         self._sync_session_state(session, sm)
@@ -324,6 +341,21 @@ class InterviewWorkflowOrchestrator:
                 fallback_func=fallback_followup
             )
 
+            # Apply Question Quality Control (QC) & Validation to follow-up probe
+            target_skills = SkillCoverageTracker.extract_target_skills(session.resume_text, session.job_description)
+            prev_questions = [t.question_text for t in session.turns]
+            past_scores = [t.turn_score for t in session.turns if t.turn_score is not None]
+            
+            followup_q, qc_audit = QuestionQualityControlPipeline.audit_and_refine(
+                question=followup_q,
+                previous_questions=prev_questions,
+                target_skills=target_skills,
+                accumulated_skills=sm.context.covered_topics,
+                base_difficulty=session.difficulty,
+                experience_level=session.experience_level,
+                turn_scores=past_scores
+            )
+
             probe_note = (
                 f"🔍 Depth Probe ({', '.join(evaluation.buzzwords_detected)}): {evaluation.probing_rationale}"
                 if evaluation.bluff_detected and evaluation.buzzwords_detected
@@ -342,9 +374,14 @@ class InterviewWorkflowOrchestrator:
                 resume_context_used=followup_q.resume_context_used,
                 adaptive_context=followup_q.adaptive_context or probe_note,
                 round_stage=followup_q.round_stage or current_turn.round_stage,
-                interviewer_persona=followup_q.interviewer_persona or current_turn.interviewer_persona
+                interviewer_persona=followup_q.interviewer_persona or current_turn.interviewer_persona,
+                qc_quality_score=qc_audit.overall_quality_score,
+                qc_clarity_score=qc_audit.clarity_score,
+                skills_covered=qc_audit.target_skills_covered,
+                qc_audit_passed=qc_audit.is_valid
             )
             self.db.add(next_turn)
+            sm.context.covered_topics.extend(qc_audit.target_skills_covered)
 
             sm.transition_to(
                 InterviewState.AWAITING_ANSWER,
@@ -419,6 +456,21 @@ class InterviewWorkflowOrchestrator:
                 fallback_func=fallback_next_q
             )
 
+            # Apply Question Quality Control (QC) & Validation to next question
+            target_skills = SkillCoverageTracker.extract_target_skills(session.resume_text, session.job_description)
+            prev_questions = [t.question_text for t in session.turns]
+            past_scores = [t.turn_score for t in session.turns if t.turn_score is not None]
+
+            next_q, qc_audit = QuestionQualityControlPipeline.audit_and_refine(
+                question=next_q,
+                previous_questions=prev_questions,
+                target_skills=target_skills,
+                accumulated_skills=sm.context.covered_topics,
+                base_difficulty=session.difficulty,
+                experience_level=session.experience_level,
+                turn_scores=past_scores
+            )
+
             next_turn = QuestionTurn(
                 session_id=session.id,
                 turn_number=len(session.turns) + 1,
@@ -430,12 +482,16 @@ class InterviewWorkflowOrchestrator:
                 resume_context_used=next_q.resume_context_used,
                 adaptive_context=next_q.adaptive_context,
                 round_stage=next_q.round_stage,
-                interviewer_persona=next_q.interviewer_persona
+                interviewer_persona=next_q.interviewer_persona,
+                qc_quality_score=qc_audit.overall_quality_score,
+                qc_clarity_score=qc_audit.clarity_score,
+                skills_covered=qc_audit.target_skills_covered,
+                qc_audit_passed=qc_audit.is_valid
             )
             self.db.add(next_turn)
 
             sm.context.active_topic = next_q.category
-            sm.context.covered_topics.append(next_q.category)
+            sm.context.covered_topics.extend(qc_audit.target_skills_covered or [next_q.category])
             sm.context.current_round_stage = next_q.round_stage
             sm.context.current_persona = next_q.interviewer_persona
 

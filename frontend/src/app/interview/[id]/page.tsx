@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, Send, CornerDownLeft, ChevronDown, ChevronUp, AlertCircle, LogOut, FileText, Sparkles, Search, Layers, CheckCircle2 } from "lucide-react";
+import { Clock, Send, CornerDownLeft, ChevronDown, ChevronUp, AlertCircle, LogOut, FileText, Sparkles, Search, Layers, CheckCircle2, ShieldCheck } from "lucide-react";
 import { api } from "@/lib/api";
 import { InterviewSession, QuestionTurn } from "@/types/interview";
 import { Button } from "@/components/ui/Button";
@@ -284,6 +284,27 @@ export default function InterviewRoomPage({
                     <Sparkles className="h-3 w-3 text-amber-500" />
                   )}
                   {currentTurn.adaptive_context}
+                </span>
+              </>
+            )}
+
+            {/* QC Quality Control Badge */}
+            {currentTurn.qc_quality_score && (
+              <>
+                <span>·</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                  <ShieldCheck className="h-3 w-3 text-blue-500" />
+                  QC Verified: {Math.round(currentTurn.qc_quality_score)}/100
+                </span>
+              </>
+            )}
+
+            {/* Skills Covered Tags */}
+            {currentTurn.skills_covered && currentTurn.skills_covered.length > 0 && (
+              <>
+                <span>·</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
+                  🎯 {currentTurn.skills_covered.join(" · ")}
                 </span>
               </>
             )}

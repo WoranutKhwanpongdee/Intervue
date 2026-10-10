@@ -28,6 +28,10 @@ class QuestionTurnResponse(BaseModel):
     adaptive_context: Optional[str] = None
     round_stage: Optional[str] = None
     interviewer_persona: Optional[str] = None
+    qc_quality_score: Optional[float] = None
+    qc_clarity_score: Optional[float] = None
+    skills_covered: List[str] = []
+    qc_audit_passed: Optional[bool] = True
     user_answer: Optional[str] = None
     answered_at: Optional[datetime] = None
     technical_score: Optional[float] = None

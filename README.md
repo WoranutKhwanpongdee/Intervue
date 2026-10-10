@@ -19,7 +19,7 @@
   <tr>
     <td align="center"><a href="#overview"><b>&nbsp;Overview&nbsp;</b></a></td>
     <td align="center"><a href="#full-interview-simulation"><b>&nbsp;Full Simulation Loop&nbsp;</b></a></td>
-    <td align="center"><a href="#core-features"><b>&nbsp;Core Features&nbsp;</b></a></td>
+    <td align="center"><a href="#question-quality-control"><b>&nbsp;Question QC Engine&nbsp;</b></a></td>
     <td align="center"><a href="#interview-bluff-detector"><b>&nbsp;Bluff Detector&nbsp;</b></a></td>
     <td align="center"><a href="#interview-skill-map"><b>&nbsp;Skill Map&nbsp;</b></a></td>
     <td align="center"><a href="#hidden-weakness-engine"><b>&nbsp;Hidden Weaknesses&nbsp;</b></a></td>
@@ -163,6 +163,37 @@ Upload your real resume (**PDF / TXT**) or paste your work history:
   - **High Performance (>80%)**: The engine dynamically escalates to distributed race conditions, cache stampedes, and failover edge cases.
   - **Foundational Gaps (<60%)**: Calibrates to practical fundamentals without condescension or repeating failed prompts.
 - **Follow-up Probe Injection**: Automatically triggers targeted deep dives when candidate answers leave important ambiguities.
+
+---
+
+## Question Quality Control
+
+> *"Every prompt is pre-screened for deduplication, clarity, difficulty calibration, and target skill coverage."*
+
+Rather than blindly presenting whatever an LLM outputs, Intervue subjects every candidate question to an automated **5-Stage Quality Control (QC) Pipeline** before it reaches the screen:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  🛡️ QUESTION QUALITY CONTROL (QC) AUDIT PIPELINE                                                             │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                             │
+│  [Step 1: Deduplication Audit]    [Step 2: Ambiguity Audit]        [Step 3: Skill Coverage] [Step 4: Auto-Repair]
+│  ✓ Jaccard & Semantic Similarity  ✓ Word Count & Invariants Check  ✓ Resume/JD Competencies ✓ Appends Trade-off Cue
+│  • Overlap Risk: 0.05 (Safe)      • Clarity Rating: 94/100         • Covered: Caching, API  • Verified & Certified
+│                                                                                                             │
+│  ─────────────────────────────────────────────────────────────────────────────────────────────────────────  │
+│  🎯 FINAL QC METRICS PERSISTED ON TURN:                                                                     │
+│  • Overall Quality Score: 94/100 · Unambiguous · Calibrated Difficulty: Hard · Covered: [Database, Concurrency]│
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+| QC Stage | Verification Mechanism | Failure Mitigation |
+|---|---|---|
+| **Deduplication Check** | Measures Jaccard & N-Gram semantic overlap against past questions. | Rejects overlaps > 65% and commands topic pivot. |
+| **Ambiguity & Clarity Audit** | Screens for indeterminate scope and missing production constraints. | Auto-repairs phrasing or appends explicit trade-off boundaries. |
+| **Dynamic Difficulty Calibration** | Tracks candidate score trajectory across previous turns. | Escalates to distributed edge cases (>85%) or solidifies core (<60%). |
+| **Target Skill Coverage** | Maps questions against target competencies from resume and JD. | Prioritizes unassessed skill gaps for upcoming turns. |
+| **Auto-Repair Loop** | Enhances under-specified prompts with concrete operational parameters. | Guarantees executive-grade clarity without repetitive retries. |
 
 ---
 
