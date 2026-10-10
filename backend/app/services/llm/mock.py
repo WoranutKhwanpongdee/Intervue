@@ -11,7 +11,8 @@ from app.schemas.llm import (
     ResumeExperience,
     HiddenWeakness,
     SkillAssessment,
-    DepthAuditItem
+    DepthAuditItem,
+    RoundEvaluation
 )
 from app.services.llm.base import BaseLLMProvider
 
@@ -221,13 +222,18 @@ class MockProvider(BaseLLMProvider):
         elif job_description and len(job_description) > 30 and domain == "job_specific":
             custom_q = f"Looking at the core requirements for this position: {selected['question']}"
 
+        round_stage = "Round 1: HR Screening & Culture Fit" if interview_type in ["Full-Loop", "Mixed"] else None
+        interviewer_persona = "Senior Talent Partner" if interview_type in ["Full-Loop", "Mixed"] else None
+
         return InterviewQuestion(
             question=custom_q,
             category=selected["category"] if not resume_context_used else "Resume Project Deep-Dive",
             difficulty=difficulty,
             rationale=f"Evaluates candidate's actual hands-on engineering experience and architectural ownership for a {experience_level} {role_title}.",
             expected_concepts=selected["expected_concepts"],
-            resume_context_used=resume_context_used
+            resume_context_used=resume_context_used,
+            round_stage=round_stage,
+            interviewer_persona=interviewer_persona
         )
 
     async def evaluate_answer(
@@ -454,12 +460,22 @@ class MockProvider(BaseLLMProvider):
                 adaptive_context = f"Adapted: Synthesizing concepts from Q{last_turn.get('turn_number')} response"
                 custom_q = f"Connecting back to your approach on '{pivot_concept}': {selected['question']}"
 
-        if resume_text and len(resume_text) > 30 and turn_number == 2:
-            analysis = await self.analyze_resume(resume_text)
-            if len(analysis.skills) >= 2:
-                s2 = analysis.skills[1]
-                custom_q = f"You also listed proficiency with '{s2}' on your resume. How have you applied {s2} in production to solve concurrency, state management, or data consistency issues?"
-                resume_context_used = f"Grounded in: Resume Skill '{s2}'"
+        # Stage & Persona assignment for Full-Loop simulation
+        round_stage = None
+        interviewer_persona = None
+        if interview_type in ["Full-Loop", "Mixed"]:
+            if turn_number == 1:
+                round_stage = "Round 1: HR Screening & Culture Fit"
+                interviewer_persona = "Senior Talent Partner"
+            elif turn_number == 2:
+                round_stage = "Round 2: Technical Deep Dive & Systems"
+                interviewer_persona = "Staff Systems Architect"
+            elif turn_number == 3:
+                round_stage = "Round 3: Behavioral & STAR Leadership"
+                interviewer_persona = "Engineering Director"
+            else:
+                round_stage = "Round 4: Hiring Manager & Strategy"
+                interviewer_persona = "Hiring Manager"
 
         return InterviewQuestion(
             question=custom_q,
@@ -468,7 +484,9 @@ class MockProvider(BaseLLMProvider):
             rationale=f"Evaluates candidate depth on {selected['category']} for {experience_level} caliber in {interview_type} mode.",
             expected_concepts=selected["expected_concepts"],
             resume_context_used=resume_context_used,
-            adaptive_context=adaptive_context
+            adaptive_context=adaptive_context,
+            round_stage=round_stage,
+            interviewer_persona=interviewer_persona
         )
 
     async def generate_final_report(
@@ -598,6 +616,38 @@ class MockProvider(BaseLLMProvider):
             )
         ]
 
+        round_evaluations = [
+            RoundEvaluation(
+                round_name="Round 1: HR Screening & Culture Fit",
+                interviewer_persona="Senior Talent Partner",
+                verdict="Strong Hire" if avg_score >= 80 else ("Hire" if avg_score >= 65 else "Lean Hire"),
+                score=min(round(avg_score + 3, 1), 98.0),
+                key_takeaway="Articulate communication, clear career motivations, and strong alignment with engineering culture."
+            ),
+            RoundEvaluation(
+                round_name="Round 2: Technical & Systems Architecture",
+                interviewer_persona="Staff Systems Architect",
+                verdict="Strong Hire" if avg_score >= 82 else ("Hire" if avg_score >= 70 else "Lean Hire"),
+                score=min(round(avg_score + 1, 1), 95.0),
+                key_takeaway="Solid understanding of data invariants, concurrency races, and cache stampede trade-offs under probing."
+            ),
+            RoundEvaluation(
+                round_name="Round 3: Behavioral & STAR Leadership",
+                interviewer_persona="Engineering Director",
+                verdict="Hire" if avg_score >= 75 else "Lean Hire",
+                score=min(round(avg_score - 2, 1), 92.0),
+                key_takeaway="Demonstrated empathy and ownership; could structure lessons from failure with tighter STAR metrics."
+            ),
+            RoundEvaluation(
+                round_name="Round 4: Hiring Manager & Strategy",
+                interviewer_persona="Hiring Manager",
+                verdict="Strong Hire" if avg_score >= 80 else "Hire",
+                score=min(round(avg_score + 2, 1), 96.0),
+                key_takeaway="Sound business ROI intuition and pragmatic balance between engineering velocity and technical debt."
+            )
+        ]
+        hiring_committee_verdict = "Strong Hire" if avg_score >= 85 else ("Hire" if avg_score >= 75 else ("Lean Hire" if avg_score >= 60 else "No Hire"))
+
         recommended_topics = [
             "System Design & Distributed Data Patterns (Saga, Outbox, CDC)",
             "Performance Profiling, Bottleneck Analysis, and Benchmarking",
@@ -614,6 +664,8 @@ class MockProvider(BaseLLMProvider):
             hidden_weaknesses=hidden_weaknesses,
             skill_map=skill_map,
             depth_audit=depth_audit,
+            round_evaluations=round_evaluations,
+            hiring_committee_verdict=hiring_committee_verdict,
             recommended_topics=recommended_topics,
             closing_advice=closing_advice
         )

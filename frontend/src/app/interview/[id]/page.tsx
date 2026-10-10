@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, Send, CornerDownLeft, ChevronDown, ChevronUp, AlertCircle, LogOut, FileText, Sparkles, Search } from "lucide-react";
+import { Clock, Send, CornerDownLeft, ChevronDown, ChevronUp, AlertCircle, LogOut, FileText, Sparkles, Search, Layers, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { InterviewSession, QuestionTurn } from "@/types/interview";
 import { Button } from "@/components/ui/Button";
@@ -184,6 +184,68 @@ export default function InterviewRoomPage({
         {errorMessage && (
           <div className="p-3 rounded-lg border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-300 text-xs">
             {errorMessage}
+          </div>
+        )}
+
+        {/* Full Loop Stage Navigator */}
+        {(session.interview_type === "Full-Loop" || session.interview_type === "Mixed") && (
+          <div className="p-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-950/70 space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-mono">
+              <span className="text-neutral-400 uppercase tracking-wider flex items-center gap-1.5 font-semibold">
+                <Layers className="h-3.5 w-3.5 text-neutral-500" />
+                <span>Full Interview Loop Simulation</span>
+              </span>
+              {currentTurn.interviewer_persona && (
+                <span className="text-neutral-700 dark:text-neutral-300 font-medium flex items-center gap-1 text-[11px]">
+                  <span>🎙️ Persona:</span>
+                  <strong className="text-neutral-900 dark:text-neutral-100">{currentTurn.interviewer_persona}</strong>
+                </span>
+              )}
+            </div>
+
+            {/* Stage Steps Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+              {[
+                { round: 1, title: "HR Screening", role: "Talent Lead" },
+                { round: 2, title: "System Arch", role: "Staff Architect" },
+                { round: 3, title: "Behavioral & STAR", role: "Director" },
+                { round: 4, title: "Hiring Manager", role: "Engineering VP" },
+              ].map((st) => {
+                const currentRoundNum = currentTurn.round_stage?.includes("Round 1") ? 1
+                  : currentTurn.round_stage?.includes("Round 2") ? 2
+                  : currentTurn.round_stage?.includes("Round 3") ? 3
+                  : currentTurn.round_stage?.includes("Round 4") ? 4
+                  : Math.min(Math.floor((answeredTurns.length / Math.max(session.num_questions, 4)) * 4) + 1, 4);
+
+                const isCurrent = currentRoundNum === st.round;
+                const isPast = currentRoundNum > st.round;
+
+                return (
+                  <div
+                    key={st.round}
+                    className={`p-2 rounded-lg border text-left transition-all ${
+                      isCurrent
+                        ? "border-black dark:border-white bg-white dark:bg-neutral-900 shadow-sm ring-1 ring-neutral-200 dark:ring-neutral-700"
+                        : isPast
+                        ? "border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/40 dark:bg-emerald-950/20 opacity-90"
+                        : "border-neutral-200 dark:border-neutral-800/60 bg-neutral-100/40 dark:bg-neutral-900/20 opacity-60"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono text-neutral-400">0{st.round}</span>
+                      {isPast && <CheckCircle2 className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />}
+                      {isCurrent && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+                    </div>
+                    <div className="text-[11px] font-medium text-neutral-900 dark:text-neutral-100 truncate mt-0.5">
+                      {st.title}
+                    </div>
+                    <div className="text-[9px] font-mono text-neutral-400 truncate">
+                      {st.role}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

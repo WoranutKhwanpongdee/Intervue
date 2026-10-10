@@ -39,14 +39,20 @@ const INTERVIEW_MODES: {
   desc: string;
 }[] = [
   {
+    id: "Full-Loop",
+    label: "Full Loop Simulation",
+    badge: "HR ➔ Tech ➔ Behavioral ➔ Manager",
+    desc: "Complete 4-stage hiring loop from recruiter screen to architecture & executive debrief.",
+  },
+  {
     id: "Technical",
-    label: "Technical",
+    label: "Technical Deep Dive",
     badge: "Code & Architecture",
     desc: "System design, core invariants, concurrency, algorithms & debugging.",
   },
   {
     id: "Behavioral",
-    label: "Behavioral",
+    label: "Behavioral & STAR",
     badge: "STAR Method",
     desc: "Teamwork, handling disagreement, ownership, and leadership situations.",
   },
@@ -58,7 +64,7 @@ const INTERVIEW_MODES: {
   },
   {
     id: "Mixed",
-    label: "Mixed",
+    label: "Mixed Track",
     badge: "Comprehensive",
     desc: "A balanced simulation across technical depth, culture fit, and behavior.",
   },

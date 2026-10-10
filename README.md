@@ -18,7 +18,7 @@
 <table align="center">
   <tr>
     <td align="center"><a href="#overview"><b>&nbsp;Overview&nbsp;</b></a></td>
-    <td align="center"><a href="#live-session-preview"><b>&nbsp;Live Simulation&nbsp;</b></a></td>
+    <td align="center"><a href="#full-interview-simulation"><b>&nbsp;Full Simulation Loop&nbsp;</b></a></td>
     <td align="center"><a href="#core-features"><b>&nbsp;Core Features&nbsp;</b></a></td>
     <td align="center"><a href="#interview-bluff-detector"><b>&nbsp;Bluff Detector&nbsp;</b></a></td>
     <td align="center"><a href="#interview-skill-map"><b>&nbsp;Skill Map&nbsp;</b></a></td>
@@ -40,15 +40,49 @@ Unlike generic chatbots that follow static question lists, Intervue operates as 
 
 ---
 
+## Full Interview Simulation
+
+> *"Experience an authentic multi-stage hiring loop—from Talent Partner screening to Hiring Manager panel debrief."*
+
+In real-world hiring, landing top engineering roles requires excelling across every distinct stage of the interview loop. Intervue's **Full-Loop Simulation** guides you through all 4 authentic rounds with distinct interviewer personas, transitioning smoothly while preserving multi-turn context:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  🔄 FULL-LOOP HIRING PIPELINE SIMULATION                                                                     │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                             │
+│  [Stage 1: HR Screening]         [Stage 2: Technical Architecture]  [Stage 3: Behavioral Leadership] [Stage 4: Hiring Manager]
+│  👤 Senior Talent Partner        👤 Staff Systems Architect         👤 Engineering Director          👤 VP / Hiring Manager
+│  ✓ Motivations & Career Arc      ✓ Distributed Invariants & Scale  ✓ STAR Conflict & Ownership      ✓ Strategy & Business Impact
+│                                                                                                             │
+│  ─────────────────────────────────────────────────────────────────────────────────────────────────────────  │
+│  🏛️ SYNTHESIZED HIRING COMMITTEE DEBRIEF:                                                                   │
+│  • Panel Consensus Verdict: 🟢 STRONG HIRE                                                                  │
+│  • Round 1 (Talent Partner): 92% (Pass) · "Clear career trajectory and executive communication."             │
+│  • Round 2 (Staff Architect): 88% (Pass) · "Deep Redis locking & idempotency; solid partition awareness."   │
+│  • Round 3 (Eng Director):    85% (Pass) · "Demonstrates extreme ownership during cross-team incidents."    │
+│  • Round 4 (Hiring Manager):  90% (Pass) · "Strong alignment on engineering velocity and product value."     │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+| Round | Stage | Active Persona | Core Objectives |
+|---|---|---|---|
+| **Round 1** | **HR & Recruiter Screening** | *Senior Talent Partner* | Career trajectory, cultural alignment, motivation clarity, communication structure |
+| **Round 2** | **Technical & System Deep Dive** | *Staff Systems Architect* | Concurrency, distributed invariants, failure recovery, real resume stack depth |
+| **Round 3** | **Behavioral Leadership** | *Engineering Director* | STAR stories, navigating team conflict, technical debt trade-offs, extreme ownership |
+| **Round 4** | **Hiring Manager & Strategy** | *Hiring Manager / Head of Eng* | Cross-functional ROI, engineering velocity, product intuition, senior mentorship |
+
+---
+
 ## Live Session Preview
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│  🎙️ INTERVUE SESSION #842  ·  Senior Backend Engineer  ·  🎯 Technical Track  ·  ⚡ Adaptive AI Active       │
+│  🎙️ INTERVUE SESSION #842  ·  Senior Backend Engineer  ·  🎯 Full-Loop Track  ·  ⚡ Adaptive AI Active      │
 ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                                             │
 │  [Question 01] · Cache Invalidation Invariants                                                              │
-│  📌 Grounded in: Distributed Payment Gateway (Redis & Go)                                                    │
+│  📌 Grounded in: Distributed Payment Gateway (Redis & Go)  ·  🎙️ Persona: Staff Systems Architect          │
 │                                                                                                             │
 │  "You listed your Go payment gateway on your resume. When caching idempotent payment tokens in Redis, how  │
 │   do you ensure data consistency during network partitions without introducing cache stampedes?"            │
@@ -78,6 +112,8 @@ Why engineering leaders and senior candidates practice on Intervue instead of ge
 
 | Feature | Intervue | Generic ChatGPT Prompts | Traditional LeetCode Apps |
 |---|:---:|:---:|:---:|
+| **Full Multi-Stage Hiring Loop (HR ➔ Tech ➔ Manager)** | **Yes (4 Calibrated Personas)** | No | No |
+| **Hiring Committee Panel Consensus** | **Yes (Per-Round Scorecards)** | No | No |
 | **Real-Time Turn Memory & Continuity** | **Yes (Full Multi-Turn Context)** | Fragmented / Forgets | No (Static questions) |
 | **Dynamic Difficulty Scaling** | **Yes (>80% escalates to edge cases)** | No | No |
 | **Hidden Blindspot Diagnosis ("What vs Why")** | **Yes (5 Cognitive Archetypes)** | No | No |
@@ -92,27 +128,27 @@ Why engineering leaders and senior candidates practice on Intervue instead of ge
 
 ```mermaid
 flowchart LR
-    A[📄 Resume / Role Setup] --> B[🧠 AI Ingestion & Grounding]
-    B --> C[🎙️ Adaptive Interview Room]
-    C -->|Real-time Turn Memory| D{Score & Depth Analysis}
-    D -->|>80% Depth| E[⚡ Escalate to Concurrency & Scale]
-    D -->|Ambiguity Found| F[🔍 Inject Deep-Dive Follow-up]
-    D -->|<60% Score| G[🎯 Calibrate Practical Fundamentals]
-    E & F & G --> C
-    C -->|Session Completed| H[📊 Scorecard & Hidden Weaknesses]
+    A[📄 Resume / Role Setup] --> B[🧠 Multi-Stage Loop Grounding]
+    B --> C[🎙️ Adaptive Stage Navigator]
+    C -->|Stage 1| D[HR Screening: Talent Partner]
+    D -->|Stage 2| E[Tech Architecture: Staff Architect]
+    E -->|Stage 3| F[Behavioral: Eng Director]
+    F -->|Stage 4| G[Strategy: Hiring Manager]
+    G --> H[🏛️ Hiring Committee Debrief & Scorecard]
 ```
 
 ---
 
 ## Core Features
 
-### 1. Five Calibrated Interview Tracks
+### 1. Six Calibrated Interview Tracks
 | Track | Target Scope | Focus Areas |
 |---|---|---|
+| **Full-Loop** | **End-to-End Simulation** | **HR Screening ➔ Tech Deep Dive ➔ Behavioral STAR ➔ Hiring Manager Strategy** |
 | **Technical** | Systems & Architecture | Invariants, concurrency, memory models, distributed data, profiling, algorithms |
 | **Behavioral** | Leadership & STAR | Team conflict, critical ownership trade-offs, stakeholder alignment, failure lessons |
 | **HR Screening** | Culture & Trajectory | Motivations, career growth arcs, compensation discussion framing, work philosophy |
-| **Mixed** | Full-Loop Simulation | Comprehensive cross-section of technical rigor, design trade-offs, and soft skills |
+| **Mixed** | Broad Evaluation | Balanced technical depth and situational leadership |
 | **Job-Specific** | Grounded Tailoring | Strictly aligns with target job description requirements, tools, and domain constraints |
 
 ### 2. Resume-Grounded Question Generation

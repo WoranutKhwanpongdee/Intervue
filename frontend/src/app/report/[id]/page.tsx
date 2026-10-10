@@ -183,6 +183,77 @@ export default function FinalReportPage({
           </div>
         </div>
 
+        {/* 🏢 FULL LOOP HIRING COMMITTEE DEBRIEF */}
+        {session.round_evaluations && session.round_evaluations.length > 0 && (
+          <div className="space-y-4 pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-xs font-mono uppercase tracking-wider text-neutral-900 dark:text-neutral-100 flex items-center gap-1.5 font-semibold">
+                  <Layers className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+                  <span>Full Loop Hiring Committee Debrief</span>
+                </h3>
+                <p className="text-[11px] text-neutral-500 mt-0.5">
+                  Multi-stage panel feedback synthesized across HR Screening, Systems Architecture, STAR Behavioral, and Executive rounds.
+                </p>
+              </div>
+
+              {session.hiring_committee_verdict && (
+                <span className={`text-[11px] font-mono px-2.5 py-1 rounded border font-semibold shrink-0 ${
+                  session.hiring_committee_verdict.includes("Strong") || session.hiring_committee_verdict === "Hire"
+                    ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800"
+                    : session.hiring_committee_verdict.includes("Lean")
+                    ? "bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800"
+                    : "bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 border-red-300 dark:border-red-800"
+                }`}>
+                  Panel Verdict: {session.hiring_committee_verdict}
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {session.round_evaluations.map((round, idx) => {
+                const isStrong = round.verdict.includes("Strong");
+                const isHire = round.verdict.includes("Hire");
+                return (
+                  <div
+                    key={idx}
+                    className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 space-y-2 text-xs"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="font-semibold text-neutral-900 dark:text-neutral-100 block text-xs">
+                          {round.round_name}
+                        </span>
+                        <span className="text-[10px] font-mono text-neutral-400">
+                          Interviewer: {round.interviewer_persona}
+                        </span>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded border block ${
+                          isStrong
+                            ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
+                            : isHire
+                            ? "bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800"
+                            : "bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800"
+                        }`}>
+                          {round.verdict}
+                        </span>
+                        <span className="text-[10px] font-mono text-neutral-500 mt-0.5 block">
+                          {Math.round(round.score)}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-neutral-600 dark:text-neutral-400 font-sans leading-relaxed pt-1 border-t border-neutral-100 dark:border-neutral-900">
+                      {round.key_takeaway}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* 🗺️ INTERVIEW SKILL MAP SECTION */}
         {skillMap.length > 0 && (
           <div className="space-y-4 pt-2">

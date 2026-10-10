@@ -52,7 +52,9 @@ class InterviewEngine:
             difficulty=initial_q.difficulty,
             expected_points=initial_q.expected_concepts,
             resume_context_used=initial_q.resume_context_used,
-            adaptive_context=initial_q.adaptive_context
+            adaptive_context=initial_q.adaptive_context,
+            round_stage=initial_q.round_stage or ("Round 1: HR & Culture Fit" if req.interview_type in ["Full-Loop", "Mixed"] else None),
+            interviewer_persona=initial_q.interviewer_persona or ("Senior Talent Partner" if req.interview_type in ["Full-Loop", "Mixed"] else None)
         )
         self.db.add(first_turn)
         await self.db.commit()
@@ -147,7 +149,9 @@ class InterviewEngine:
                 difficulty=followup_q.difficulty,
                 expected_points=followup_q.expected_concepts,
                 resume_context_used=followup_q.resume_context_used,
-                adaptive_context=followup_q.adaptive_context or probe_note
+                adaptive_context=followup_q.adaptive_context or probe_note,
+                round_stage=followup_q.round_stage or current_turn.round_stage,
+                interviewer_persona=followup_q.interviewer_persona or current_turn.interviewer_persona
             )
             self.db.add(next_turn)
         elif core_answered_count < total_core_needed:
@@ -191,7 +195,9 @@ class InterviewEngine:
                 difficulty=next_q.difficulty,
                 expected_points=next_q.expected_concepts,
                 resume_context_used=next_q.resume_context_used,
-                adaptive_context=next_q.adaptive_context
+                adaptive_context=next_q.adaptive_context,
+                round_stage=next_q.round_stage,
+                interviewer_persona=next_q.interviewer_persona
             )
             self.db.add(next_turn)
         else:
@@ -242,6 +248,8 @@ class InterviewEngine:
         session.hidden_weaknesses = [hw.model_dump() if hasattr(hw, 'model_dump') else hw for hw in report.hidden_weaknesses]
         session.skill_map = [sm.model_dump() if hasattr(sm, 'model_dump') else sm for sm in report.skill_map]
         session.depth_audit = [da.model_dump() if hasattr(da, 'model_dump') else da for da in report.depth_audit]
+        session.round_evaluations = [re.model_dump() if hasattr(re, 'model_dump') else re for re in report.round_evaluations]
+        session.hiring_committee_verdict = report.hiring_committee_verdict
         session.recommended_topics = report.recommended_topics
         session.closing_advice = report.closing_advice
 

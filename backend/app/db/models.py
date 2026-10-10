@@ -31,6 +31,8 @@ class InterviewSession(Base):
     hidden_weaknesses = Column(JSON, nullable=True, default=list)
     skill_map = Column(JSON, nullable=True, default=list)
     depth_audit = Column(JSON, nullable=True, default=list)
+    round_evaluations = Column(JSON, nullable=True, default=list)
+    hiring_committee_verdict = Column(String(50), nullable=True)
     recommended_topics = Column(JSON, nullable=True, default=list)
     closing_advice = Column(Text, nullable=True)
 
@@ -60,6 +62,8 @@ class QuestionTurn(Base):
     expected_points = Column(JSON, nullable=True, default=list)
     resume_context_used = Column(Text, nullable=True)
     adaptive_context = Column(Text, nullable=True)
+    round_stage = Column(String(100), nullable=True)
+    interviewer_persona = Column(String(100), nullable=True)
 
     user_answer = Column(Text, nullable=True)
     answered_at = Column(DateTime, nullable=True)

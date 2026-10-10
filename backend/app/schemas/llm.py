@@ -10,6 +10,16 @@ class InterviewQuestion(BaseModel):
     expected_concepts: List[str] = Field(default_factory=list, description="Key concepts or technical facets expected in an ideal answer")
     resume_context_used: Optional[str] = Field(default=None, description="Specific project, skill, or experience from resume that inspired this question")
     adaptive_context: Optional[str] = Field(default=None, description="Explanation of how this question adapted in real-time based on candidate's previous answers, strengths, or gaps")
+    round_stage: Optional[str] = Field(default=None, description="Stage in full loop, e.g. 'Round 1: HR Screening', 'Round 2: Technical Architecture', 'Round 3: Behavioral Leadership', 'Round 4: Hiring Manager'")
+    interviewer_persona: Optional[str] = Field(default=None, description="Active interviewer persona, e.g. 'Senior Talent Partner', 'Staff Systems Architect', 'Engineering Director', 'Hiring Manager'")
+
+
+class RoundEvaluation(BaseModel):
+    round_name: str = Field(description="Stage name, e.g. 'Round 1: HR & Culture Fit', 'Round 2: Technical & Architecture', 'Round 3: Behavioral & STAR', 'Round 4: Hiring Manager'")
+    interviewer_persona: str = Field(description="Persona title, e.g. 'Senior Talent Partner', 'Staff Systems Architect', 'Engineering Director', 'Hiring Manager'")
+    verdict: str = Field(description="'Strong Hire' | 'Hire' | 'Lean Hire' | 'Lean No Hire' | 'No Hire'")
+    score: float = Field(ge=0, le=100, description="Score for this specific round from 0 to 100")
+    key_takeaway: str = Field(description="Summary of performance and signal gathered in this round")
 
 
 class AnswerEvaluation(BaseModel):
@@ -84,5 +94,7 @@ class FinalInterviewReport(BaseModel):
     hidden_weaknesses: List[HiddenWeakness] = Field(default_factory=list, description="Latent behavioral and communication blindspots detected across candidate responses")
     skill_map: List[SkillAssessment] = Field(default_factory=list, description="Topic-by-topic skill competency map with scores or insufficient data flags")
     depth_audit: List[DepthAuditItem] = Field(default_factory=list, description="Authenticity and depth audit on key concepts/buzzwords used by candidate")
+    round_evaluations: List[RoundEvaluation] = Field(default_factory=list, description="Round-by-round hiring debrief for multi-stage full loop simulations")
+    hiring_committee_verdict: Optional[str] = Field(default=None, description="Consensus hiring decision: 'Strong Hire', 'Hire', 'Lean Hire', 'No Hire'")
     recommended_topics: List[str] = Field(default_factory=list, description="Specific topics or technologies to study next")
     closing_advice: str = Field(description="Practical, encouraging next steps for real-world interviews")

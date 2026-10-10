@@ -111,7 +111,9 @@ Return a valid JSON object matching this schema:
   "difficulty": "{difficulty}",
   "rationale": "string (brief explanation why this question is suitable)",
   "expected_concepts": ["concept 1", "concept 2", "concept 3"],
-  "resume_context_used": "string or null (mention which specific project/technology from resume this question investigates)"
+  "resume_context_used": "string or null (mention which specific project/technology from resume this question investigates)",
+  "round_stage": "string or null (e.g. 'Round 1: HR & Culture Fit' if Full-Loop or Mixed)",
+  "interviewer_persona": "string or null (e.g. 'Senior Talent Partner' or 'Staff Architect')"
 }}"""
         raw = await self._call_gemini(prompt)
         cleaned = clean_json_text(raw)
@@ -262,6 +264,11 @@ ADAPTIVE INTERVIEW RULES:
    - If candidate struggled (<60%) on previous questions, adapt by pivoting or testing foundational practical mastery without repeating the same exact prompt.
 3. Resume Grounding: If resume highlights are present, ground this question in a specific project or toolchain from the resume.
 4. Adaptive Context: In the 'adaptive_context' field, explicitly state in 1 concise sentence how their past answers/scores influenced this question.
+5. Full-Loop Progression: If interview_type is 'Full-Loop' or 'Mixed', map this question to the appropriate hiring stage:
+   - Early turns: 'Round 1: HR & Culture Fit' (Persona: Senior Talent Partner)
+   - Middle turns: 'Round 2: Technical Deep Dive & Architecture' (Persona: Staff Systems Architect)
+   - Later turns: 'Round 3: Behavioral & STAR Leadership' (Persona: Engineering Director)
+   - Final turns: 'Round 4: Hiring Manager Round' (Persona: Hiring Manager)
 
 Return JSON:
 {{
@@ -271,7 +278,9 @@ Return JSON:
   "rationale": "string",
   "expected_concepts": ["concept 1", "concept 2"],
   "resume_context_used": "string or null",
-  "adaptive_context": "string (e.g., 'Adapted: Candidate scored 90% on Q1; escalating to multi-region distributed failover')"
+  "adaptive_context": "string (e.g., 'Adapted: Candidate scored 90% on Q1; escalating to multi-region distributed failover')",
+  "round_stage": "string or null (e.g. 'Round 2: Technical Deep Dive & Architecture')",
+  "interviewer_persona": "string or null (e.g. 'Staff Systems Architect')"
 }}"""
         raw = await self._call_gemini(prompt)
         cleaned = clean_json_text(raw)
@@ -314,6 +323,9 @@ CRITICAL COACHING TASK:
 3. Generate DEPTH & AUTHENTICITY AUDIT (Bluff Detector):
    - Evaluate 2-4 key technical architectures, frameworks, or buzzwords the candidate mentioned (e.g. RAG, Redis Distributed Mutex, Kafka, CQRS, GraphQL, Microservices).
    - Indicate whether they demonstrated "Verified Depth" or "Superficial / Probe Triggered", mention any probe question asked, and give a respectful coach observation on their actual depth.
+4. Generate FULL INTERVIEW LOOP DEBRIEF:
+   - Provide round_evaluations array covering the stages (Round 1: HR & Culture Fit, Round 2: Technical & Architecture, Round 3: Behavioral & STAR, Round 4: Hiring Manager) with verdict ('Strong Hire', 'Hire', 'Lean Hire', 'Lean No Hire', 'No Hire'), score (0-100), and key_takeaway.
+   - Provide hiring_committee_verdict ('Strong Hire', 'Hire', 'Lean Hire', 'No Hire').
 
 Return JSON:
 {{
@@ -355,6 +367,23 @@ Return JSON:
       "coach_observation": "Demonstrated authentic mastery by articulating hybrid BM25 + dense vector reranking and RAGAS evaluation."
     }}
   ],
+  "round_evaluations": [
+    {{
+      "round_name": "Round 1: HR & Culture Fit",
+      "interviewer_persona": "Senior Talent Partner",
+      "verdict": "Strong Hire",
+      "score": 90.0,
+      "key_takeaway": "Crisp communication, clear motivation, and strong cultural alignment."
+    }},
+    {{
+      "round_name": "Round 2: Technical & Architecture",
+      "interviewer_persona": "Staff Systems Architect",
+      "verdict": "Hire",
+      "score": 85.0,
+      "key_takeaway": "Deep understanding of concurrency and caching invariants; minor gap in partition recovery."
+    }}
+  ],
+  "hiring_committee_verdict": "Strong Hire | Hire | Lean Hire | No Hire",
   "recommended_topics": ["topic/framework/concept 1", "topic 2", "topic 3"],
   "closing_advice": "string (actionable closing advice)"
 }}"""

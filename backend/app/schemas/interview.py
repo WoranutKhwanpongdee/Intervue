@@ -1,13 +1,13 @@
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from app.schemas.llm import AnswerEvaluation, FinalInterviewReport, ResumeAnalysis, HiddenWeakness, SkillAssessment, DepthAuditItem
+from app.schemas.llm import AnswerEvaluation, FinalInterviewReport, ResumeAnalysis, HiddenWeakness, SkillAssessment, DepthAuditItem, RoundEvaluation
 
 
 class CreateInterviewRequest(BaseModel):
     role_title: str = Field(..., min_length=2, max_length=200, example="Senior Frontend Engineer")
     experience_level: str = Field(..., example="Senior")  # Junior, Mid, Senior, Lead, Principal
-    interview_type: str = Field(..., example="Technical")  # Technical, Behavioral, HR, Mixed, Job-specific
+    interview_type: str = Field(..., example="Full-Loop")  # Full-Loop, Technical, Behavioral, HR, Mixed, Job-specific
     difficulty: str = Field(..., example="Medium")  # Easy, Medium, Hard
     num_questions: int = Field(default=5, ge=1, le=10, example=5)
     resume_text: Optional[str] = Field(default=None, max_length=25000)
@@ -26,6 +26,8 @@ class QuestionTurnResponse(BaseModel):
     expected_points: List[str] = []
     resume_context_used: Optional[str] = None
     adaptive_context: Optional[str] = None
+    round_stage: Optional[str] = None
+    interviewer_persona: Optional[str] = None
     user_answer: Optional[str] = None
     answered_at: Optional[datetime] = None
     technical_score: Optional[float] = None
@@ -95,6 +97,8 @@ class InterviewSessionDetail(BaseModel):
     hidden_weaknesses: List[HiddenWeakness] = []
     skill_map: List[SkillAssessment] = []
     depth_audit: List[DepthAuditItem] = []
+    round_evaluations: List[RoundEvaluation] = []
+    hiring_committee_verdict: Optional[str] = None
     recommended_topics: List[str] = []
     closing_advice: Optional[str] = None
     created_at: datetime

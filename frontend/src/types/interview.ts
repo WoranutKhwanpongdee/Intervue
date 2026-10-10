@@ -1,5 +1,5 @@
 export type ExperienceLevel = 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
-export type InterviewMode = 'Technical' | 'Behavioral' | 'HR' | 'Mixed' | 'Job-specific';
+export type InterviewMode = 'Full-Loop' | 'Technical' | 'Behavioral' | 'HR' | 'Mixed' | 'Job-specific';
 export type InterviewType = InterviewMode;
 export type Difficulty = 'Easy' | 'Medium' | 'Hard';
 
@@ -24,6 +24,14 @@ export interface DepthAuditItem {
   verification_status: 'Verified Depth' | 'Superficial / Probe Triggered';
   probe_question?: string | null;
   coach_observation: string;
+}
+
+export interface RoundEvaluation {
+  round_name: string;
+  interviewer_persona: string;
+  verdict: 'Strong Hire' | 'Hire' | 'Lean Hire' | 'Lean No Hire' | 'No Hire';
+  score: number;
+  key_takeaway: string;
 }
 
 export interface ResumeProject {
@@ -75,6 +83,8 @@ export interface QuestionTurn {
   bluff_detected?: boolean;
   buzzwords_detected?: string[];
   probing_rationale?: string | null;
+  round_stage?: string | null;
+  interviewer_persona?: string | null;
   created_at: string;
 }
 
@@ -96,6 +106,8 @@ export interface InterviewSession {
   hidden_weaknesses?: HiddenWeakness[];
   skill_map?: SkillAssessment[];
   depth_audit?: DepthAuditItem[];
+  round_evaluations?: RoundEvaluation[];
+  hiring_committee_verdict?: string | null;
   recommended_topics: string[];
   closing_advice?: string | null;
   created_at: string;
